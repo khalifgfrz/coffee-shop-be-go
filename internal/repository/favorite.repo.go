@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"database/sql"
+	"fmt"
 	"khalifgfrz/coffee-shop-be-go/internal/models"
 
 	"github.com/jmoiron/sqlx"
@@ -68,12 +70,27 @@ func (r *RepoFavorite) DeleteFavorite(id int) error {
 	return err
 }
 
-func (r *RepoFavorite) UpdateFavorite(data *models.UpdateFavorite) error {
+func (r *RepoFavorite) UpdateFavorite(data *models.UpdateFavorite) (*models.UpdateFavorite, error) {
 	query := `
 		UPDATE public.favorite 
-		SET product_id = :product_id, updated_at = now() WHERE favorite_id = :favorite_id
+		SET product_id = :product_id, updated_at = now() 
+		WHERE favorite_id = :favorite_id
 		RETURNING *
 	`
-	_, err := r.NamedExec(query, data)
-	return err
+	rows, err := r.DB.NamedQuery(query, data)
+	if err != nil {
+		return nil, fmt.Errorf("query execution error: %w", err)
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		var favorite models.UpdateFavorite
+		err := rows.StructScan(&favorite)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning row: %w", err)
+		}
+		return &favorite, nil
+	}
+
+	return nil, sql.ErrNoRows
 }

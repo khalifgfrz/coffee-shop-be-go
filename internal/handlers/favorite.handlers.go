@@ -87,17 +87,31 @@ func (h *HandlerFavorite) FavoriteDelete(ctx *gin.Context) {
 }
 
 func (h *HandlerFavorite) PatchFavorite(ctx *gin.Context) {
-	favorite := models.UpdateFavorite{}
-
-	if err := ctx.ShouldBind(&favorite); err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+	var favorite models.UpdateFavorite
+	if err := ctx.ShouldBindJSON(&favorite); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := h.UpdateFavorite(&favorite); err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+	idParam := ctx.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid favorite ID"})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Favorite product updated successfully"})
+	favorite.Favorite_id = id
+
+	data, err := h.UpdateFavorite(&favorite)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if data == nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Favorite not found"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, data)
 }
