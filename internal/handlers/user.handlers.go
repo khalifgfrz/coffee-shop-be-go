@@ -34,9 +34,32 @@ func (h *HandlerUser) PostUser(ctx *gin.Context) {
 }
 
 func (h *HandlerUser) GetUsers(ctx *gin.Context) {
-	data, err := h.GetAllUser()
+	pageStr := ctx.Query("page")
+
+	var page int
+	var err error
+
+	if pageStr != "" {
+		page, err = strconv.Atoi(pageStr)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page number"})
+			return
+		}
+	} else {
+		page = 1
+	}
+
+	query := models.UserQuery{
+		Page: page,
+	}
+	data, err := h.GetAllUser(&query)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(*data) == 0 {
+		ctx.JSON(http.StatusNotFound, gin.H{"message": "No users found"})
 		return
 	}
 
@@ -77,6 +100,12 @@ func (h *HandlerUser) UserDelete(ctx *gin.Context) {
 }
 
 func (h *HandlerUser) UserUpdate(ctx *gin.Context) {
+	var user models.User
+	if err := ctx.ShouldBindJSON(&user); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	idParam := ctx.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
@@ -84,18 +113,11 @@ func (h *HandlerUser) UserUpdate(ctx *gin.Context) {
 		return
 	}
 
-	user := models.User{}
-
-	if err := ctx.ShouldBind(&user); err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	response, err := h.UpdateUser(id,&user)
+	updatedUser, err := h.UpdateUser(&user, id)
 	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(200, response)
+	ctx.JSON(http.StatusOK, updatedUser)
 }

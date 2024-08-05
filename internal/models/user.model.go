@@ -21,7 +21,7 @@ create table public.user (
 `
 
 type User struct {
-	User_id	     int     `db:"user_id" json:"user_id"`
+	User_id	     int     	`db:"user_id" json:"user_id"`
 	User_uuid	 string     `db:"user_uuid" json:"user_uuid"`
 	First_name   string     `db:"first_name" json:"first_name"`
 	Last_name    string     `db:"last_name" json:"last_name"`
@@ -36,3 +36,7 @@ type User struct {
 }
 
 type Users []User
+
+type UserQuery struct {
+	Page        int    `form:"page"`
+}

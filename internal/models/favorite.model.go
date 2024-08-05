@@ -30,4 +30,11 @@ type PostFavorite struct {
 	Updated_at    *time.Time `db:"updated_at" json:"updated_at"`
 }
 
+type UpdateFavorite struct {
+	Favorite_id   int        `db:"favorite_id" json:"favorite_id"`
+	Product_id    int        `db:"product_id" json:"product_id"`
+	Created_at    *time.Time `db:"created_at" json:"created_at"`
+	Updated_at    *time.Time `db:"updated_at" json:"updated_at"`
+}
+
 type Favorites []Favorite

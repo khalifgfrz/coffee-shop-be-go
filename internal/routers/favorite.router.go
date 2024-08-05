@@ -18,5 +18,5 @@ func favorite(g *gin.Engine, d *sqlx.DB) {
 	route.GET("/:id", handler.GetFavoriteDetail)
 	route.POST("/", handler.PostFavorite)
 	route.DELETE("/:id", handler.FavoriteDelete)
-	// route.PATCH("/:id", handler.FavoriteUpdate)
+	route.PATCH("/:id", handler.PatchFavorite)
 }

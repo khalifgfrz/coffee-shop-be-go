@@ -30,3 +30,12 @@ type Product struct {
 }
 
 type Products []Product
+
+type ProductQuery struct {
+	Product_name string `form:"product_name"`
+	MinPrice    int    `form:"min_price"`
+	MaxPrice    int    `form:"max_price"`
+	Category    string `form:"category"`
+	SortBy      string `form:"sort_by"`
+	Page        int    `form:"page"`
+}
