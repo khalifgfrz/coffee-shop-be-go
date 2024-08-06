@@ -104,14 +104,14 @@ func (r *RepoProduct) GetAllProduct(que *models.ProductQuery) (*models.Products,
 	for rows.Next() {
 		var product models.Product
 		err := rows.Scan(
-			&product.Product_id, 
-			&product.Product_uuid, 
-			&product.Product_name, 
-			&product.Price, 
-			&product.Category, 
-			&product.Description, 
-			&product.Stock, 
-			&product.Created_at, 
+			&product.Product_id,
+			&product.Product_uuid,
+			&product.Product_name,
+			&product.Price,
+			&product.Category,
+			&product.Description,
+			&product.Stock,
+			&product.Created_at,
 			&product.Updated_at,
 		)
 		if err != nil {

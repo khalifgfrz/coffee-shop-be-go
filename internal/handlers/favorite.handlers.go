@@ -100,18 +100,11 @@ func (h *HandlerFavorite) PatchFavorite(ctx *gin.Context) {
 		return
 	}
 
-	favorite.Favorite_id = id
-
-	data, err := h.UpdateFavorite(&favorite)
+	updatedFavorite, err := h.UpdateFavorite(&favorite, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if data == nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Favorite not found"})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, data)
+	ctx.JSON(http.StatusOK, updatedFavorite)
 }
