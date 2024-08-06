@@ -34,14 +34,32 @@ func (h *HandlerFavorite) PostFavorite(ctx *gin.Context) {
 }
 
 func (h *HandlerFavorite) GetFavorites(ctx *gin.Context) {
-	data, err := h.GetAllFavorite()
+	pageStr := ctx.Query("page")
+
+	var page int
+	var err error
+
+	if pageStr != "" {
+		page, err = strconv.Atoi(pageStr)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page number"})
+			return
+		}
+	} else {
+		page = 1
+	}
+
+	query := models.FavoriteQuery{
+		Page: page,
+	}
+	data, err := h.GetAllFavorite(&query)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	if len(*data) == 0 {
-		ctx.JSON(http.StatusNotFound, gin.H{"message": "No products found"})
+		ctx.JSON(http.StatusNotFound, gin.H{"message": "No favorite found"})
 		return
 	}
 
@@ -63,7 +81,7 @@ func (h *HandlerFavorite) GetFavoriteDetail(ctx *gin.Context) {
 	}
 
 	if data == nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Favorite not found"})
 		return
 	}
 

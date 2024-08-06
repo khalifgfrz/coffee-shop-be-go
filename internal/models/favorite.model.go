@@ -49,3 +49,7 @@ type UpdateFavorite struct {
 	Created_at    *time.Time `db:"created_at" json:"created_at"`
 	Updated_at    *time.Time `db:"updated_at" json:"updated_at"`
 }
+
+type FavoriteQuery struct {
+	Page        int    `form:"page"`
+}

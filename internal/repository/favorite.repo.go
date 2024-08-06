@@ -29,15 +29,52 @@ func (r *RepoFavorite) CreateFavorite(data *models.PostFavorite) error {
 	return err
 }
 
-func (r *RepoFavorite) GetAllFavorite() (*models.Favorites, error) {
+func (r *RepoFavorite) GetAllFavorite(que *models.FavoriteQuery) (*models.Favorites, error) {
 	query := `SELECT f.favorite_id, f.favorite_uuid, u.first_name, u.last_name, u.phone, u.address,
 	u.email, p.product_name, p.price, p.category, p.description, f.created_at, f.updated_at FROM public.favorite f
 	join public.product p on f.product_id = p.product_id
 	join public.user u on f.user_id = u.user_id
 	order by f.created_at DESC`
-	data := models.Favorites{}
+	var values []interface{}
 
-	if err := r.Select(&data, query); err != nil {
+	if que.Page > 0 {
+		limit := 5
+		offset := (que.Page - 1) * limit
+		query += fmt.Sprintf(` LIMIT $%d OFFSET $%d`, len(values)+1, len(values)+2)
+		values = append(values, limit, offset)
+	}
+	
+	rows, err := r.DB.Query(query, values...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var data models.Favorites
+	for rows.Next() {
+		var favorite models.Favorite
+		err := rows.Scan(
+			&favorite.Favorite_id,
+			&favorite.Favorite_uuid,
+			&favorite.First_name,
+			&favorite.Last_name,
+			&favorite.Phone,
+			&favorite.Address,
+			&favorite.Email,
+			&favorite.Product_name,
+			&favorite.Price,
+			&favorite.Category,
+			&favorite.Description,
+			&favorite.Created_at,
+			&favorite.Updated_at,
+		)
+		if err != nil {
+			return nil, err
+		}
+		data = append(data, favorite)
+	}
+
+	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
