@@ -122,13 +122,13 @@ func (r *RepoUser) DeleteUser(id int) error {
 func (r *RepoUser) UpdateUser(data *models.User, id int) (*models.User, error) {
 	query := `UPDATE public.user SET
 		first_name = COALESCE(NULLIF(:first_name, ''), first_name),
-		last_name = COALESCE(NULLIF(:last_name, 0), last_name),
+		last_name = COALESCE(NULLIF(:last_name, ''), last_name),
 		phone = COALESCE(NULLIF(:phone, ''), phone),
 		address = COALESCE(NULLIF(:address, ''), address),
 		birth_date = COALESCE(NULLIF(:birth_date, ''), birth_date),
-		email = COALESCE(NULLIF(:email, 0), email),
-		password = COALESCE(NULLIF(:password, 0), password),
-		role = COALESCE(NULLIF(:role, 0), role),
+		email = COALESCE(NULLIF(:email, ''), email),
+		password = COALESCE(NULLIF(:password, ''), password),
+		role = COALESCE(NULLIF(:role, ''), role),
 		updated_at = now()
 	WHERE user_id = :id RETURNING *`
 
