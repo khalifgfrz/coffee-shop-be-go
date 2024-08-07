@@ -39,7 +39,7 @@ func (h *HandlerProduct) GetProducts(ctx *gin.Context) {
 	maxPriceStr := ctx.Query("max_price")
 	category := ctx.Query("category")
 	sortBy := ctx.Query("sort_by")
-	pageStr := ctx.Query("page")
+	pageStr := ctx.DefaultQuery("page","1")
 
 	var minPrice, maxPrice, page int
 	var err error
@@ -66,8 +66,6 @@ func (h *HandlerProduct) GetProducts(ctx *gin.Context) {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page number"})
 			return
 		}
-	} else {
-		page = 1
 	}
 
 	query := models.ProductQuery{
@@ -131,7 +129,7 @@ func (h *HandlerProduct) ProductDelete(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Product deleted successfully"})
 }
 
-func (h *HandlerProduct) ProductUpdate(ctx *gin.Context) {
+func (h *HandlerProduct) PatchProduct(ctx *gin.Context) {
 	var product models.Product
 	if err := ctx.ShouldBindJSON(&product); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

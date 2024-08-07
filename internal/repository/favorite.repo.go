@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"database/sql"
 	"fmt"
 	"khalifgfrz/coffee-shop-be-go/internal/models"
 
@@ -117,48 +116,91 @@ func (r *RepoFavorite) DeleteFavorite(id int) error {
 	return err
 }
 
-func (r *RepoFavorite) UpdateFavorite(data *models.UpdateFavorite, id int) (*models.UpdateFavorite, error) {
-	query := `UPDATE public.favorite SET`
-	var values []interface{}
-	condition := false
+func (r *RepoFavorite) UpdateFavorite(data *models.UpdateFavorite, id int) (*models.Favorite, error) {
+	query := `UPDATE public.favorite SET
+		user_id = COALESCE(NULLIF(:user_id, 0), user_id),
+		product_id = COALESCE(NULLIF(:product_id, 0), product_id),
+		updated_at = now()
+	WHERE favorite_id = :id RETURNING *`
 
-	if data.User_id != 0 {
-		query += fmt.Sprintf(` user_id = $%d`, len(values)+1)
-		values = append(values, data.User_id)
-		condition = true
-	}
-	if data.Product_id != 0 {
-		if condition {
-			query += ","
-		}
-		query += fmt.Sprintf(` product_id = $%d`, len(values)+1)
-		values = append(values, data.Product_id)
-		condition = true
-	}
-	if !condition {
-		return nil, fmt.Errorf("no fields to update")
+	params := map[string]interface{}{
+		"user_id": 		data.User_id,
+		"product_id":   data.Product_id,
+		"id":           id,
 	}
 
-	query += fmt.Sprintf(`, updated_at = now() WHERE favorite_id = $%d RETURNING *`, len(values)+1)
-	values = append(values, id)
-
-	row := r.DB.QueryRow(query, values...)
-	var favorite models.UpdateFavorite
-	err := row.Scan(
-		&favorite.Favorite_id,
-		&favorite.Favorite_uuid,
-		&favorite.User_id,
-		&favorite.Product_id,
-		&favorite.Created_at,
-		&favorite.Updated_at,
-	)
-
+	rows, err := r.DB.NamedQuery(query, params)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf(`favorite with id %d not found`, id)	
+		return nil, fmt.Errorf("query execution error: %w", err)
+	}
+	defer rows.Close()
+
+	var favorite models.Favorite
+	if rows.Next() {
+		err := rows.Scan(
+			&favorite.Favorite_id,
+			&favorite.Favorite_uuid,
+			&favorite.First_name,
+			&favorite.Last_name,
+			&favorite.Phone,
+			&favorite.Address,
+			&favorite.Email,
+			&favorite.Product_name,
+			&favorite.Price,
+			&favorite.Category,
+			&favorite.Description,
+			&favorite.Created_at,
+			&favorite.Updated_at,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("scan error: %w", err)
 		}
-		return nil, fmt.Errorf(`query execution error: %w`, err)
+	} else {
+		return nil, fmt.Errorf("product with id %d not found", id)
 	}
 
 	return &favorite, nil
+	// query := `UPDATE public.favorite SET`
+	// var values []interface{}
+	// condition := false
+
+	// if data.User_id != 0 {
+	// 	query += fmt.Sprintf(` user_id = $%d`, len(values)+1)
+	// 	values = append(values, data.User_id)
+	// 	condition = true
+	// }
+	// if data.Product_id != 0 {
+	// 	if condition {
+	// 		query += ","
+	// 	}
+	// 	query += fmt.Sprintf(` product_id = $%d`, len(values)+1)
+	// 	values = append(values, data.Product_id)
+	// 	condition = true
+	// }
+	// if !condition {
+	// 	return nil, fmt.Errorf("no fields to update")
+	// }
+
+	// query += fmt.Sprintf(`, updated_at = now() WHERE favorite_id = $%d RETURNING *`, len(values)+1)
+	// values = append(values, id)
+
+	// row := r.DB.QueryRow(query, values...)
+	// var favorite models.UpdateFavorite
+	// err := row.Scan(
+	// 	&favorite.Favorite_id,
+	// 	&favorite.Favorite_uuid,
+	// 	&favorite.User_id,
+	// 	&favorite.Product_id,
+	// 	&favorite.Created_at,
+	// 	&favorite.Updated_at,
+	// )
+
+	// if err != nil {
+	// 	if err == sql.ErrNoRows {
+	// 		return nil, fmt.Errorf(`favorite with id %d not found`, id)	
+	// 	}
+	// 	return nil, fmt.Errorf(`query execution error: %w`, err)
+	// }
+
+	// return &favorite, nil
 }

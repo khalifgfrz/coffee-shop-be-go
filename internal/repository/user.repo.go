@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"database/sql"
 	"fmt"
 	"khalifgfrz/coffee-shop-be-go/internal/models"
 
@@ -121,91 +120,57 @@ func (r *RepoUser) DeleteUser(id int) error {
 }
 
 func (r *RepoUser) UpdateUser(data *models.User, id int) (*models.User, error) {
-	query := `UPDATE public.user SET`
-	var values []interface{}
-	condition := false
+	query := `UPDATE public.user SET
+		first_name = COALESCE(NULLIF(:first_name, ''), first_name),
+		last_name = COALESCE(NULLIF(:last_name, 0), last_name),
+		phone = COALESCE(NULLIF(:phone, ''), phone),
+		address = COALESCE(NULLIF(:address, ''), address),
+		birth_date = COALESCE(NULLIF(:birth_date, ''), birth_date),
+		email = COALESCE(NULLIF(:email, 0), email),
+		password = COALESCE(NULLIF(:password, 0), password),
+		role = COALESCE(NULLIF(:role, 0), role),
+		updated_at = now()
+	WHERE user_id = :id RETURNING *`
 
-	if data.First_name != "" {
-		query += fmt.Sprintf(` first_name = $%d`, len(values)+1)
-		values = append(values, data.First_name)
-		condition = true
-	}
-	if data.Last_name != "" {
-		if condition {
-			query += ","
-		}
-		query += fmt.Sprintf(` last_name = $%d`, len(values)+1)
-		values = append(values, data.Last_name)
-		condition = true
-	}
-	if data.Phone != "" {
-		if condition {
-			query += ","
-		}
-		query += fmt.Sprintf(` phone = $%d`, len(values)+1)
-		values = append(values, data.Phone)
-		condition = true
-	}
-	if data.Birth_date != "" {
-		if condition {
-			query += ","
-		}
-		query += fmt.Sprintf(` birth_date = $%d`, len(values)+1)
-		values = append(values, data.Birth_date)
-		condition = true
-	}
-	if data.Email != "" {
-		if condition {
-			query += ","
-		}
-		query += fmt.Sprintf(` email = $%d`, len(values)+1)
-		values = append(values, data.Email)
-		condition = true
-	}
-	if data.Password != "" {
-		if condition {
-			query += ","
-		}
-		query += fmt.Sprintf(` password = $%d`, len(values)+1)
-		values = append(values, data.Password)
-		condition = true
-	}
-	if data.Role != "" {
-		if condition {
-			query += ","
-		}
-		query += fmt.Sprintf(` role = $%d`, len(values)+1)
-		values = append(values, data.Role)
-		condition = true
-	}
-	if !condition {
-		return nil, fmt.Errorf("no fields to update")
+	params := map[string]interface{}{
+		"first_name": 		data.First_name,
+		"last_name":        data.Last_name,
+		"phone":     		data.Phone,
+		"address":     		data.Address,
+		"birth_date":  		data.Birth_date,
+		"email":        	data.Email,
+		"password":        	data.Password,
+		"role":        		data.Role,
+		"id":           	id,
 	}
 
-	query += fmt.Sprintf(`, updated_at = now() WHERE user_id = $%d RETURNING *`, len(values)+1)
-	values = append(values, id)
-
-	row := r.DB.QueryRow(query, values...)
-	var user models.User
-	err := row.Scan(
-		&user.User_id,
-		&user.User_uuid,
-		&user.First_name,
-		&user.Last_name,
-		&user.Phone,
-		&user.Address,
-		&user.Birth_date,
-		&user.Email,
-		&user.Password,
-		&user.Role,
-		&user.Created_at,
-		&user.Updated_at,
-	)
+	rows, err := r.DB.NamedQuery(query, params)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf(`user with id %d not found`, id)
+		return nil, fmt.Errorf("query execution error: %w", err)
+	}
+	defer rows.Close()
+
+	var user models.User
+	if rows.Next() {
+		err := rows.Scan(
+			&user.User_id,
+			&user.User_uuid,
+			&user.First_name,
+			&user.Last_name,
+			&user.Phone,
+			&user.Address,
+			&user.Birth_date,
+			&user.Email,
+			&user.Password,
+			&user.Role,
+			&user.Created_at,
+			&user.Updated_at,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("scan error: %w", err)
 		}
-		return nil, fmt.Errorf(`query execution error: %w`, err)
+	} else {
+		return nil, fmt.Errorf("user with id %d not found", id)
 	}
 
 	return &user, nil

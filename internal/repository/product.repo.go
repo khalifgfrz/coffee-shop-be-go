@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"database/sql"
 	"fmt"
 	"khalifgfrz/coffee-shop-be-go/internal/models"
 
@@ -159,73 +158,48 @@ func (r *RepoProduct) DeleteProduct(id int) error {
 }
 
 func (r *RepoProduct) UpdateProduct(data *models.Product, id int) (*models.Product, error) {
-	query := `UPDATE public.product SET`
-	var values []interface{}
-	condition := false
+	query := `UPDATE public.product SET
+		product_name = COALESCE(NULLIF(:product_name, ''), product_name),
+		price = COALESCE(NULLIF(:price, 0), price),
+		category = COALESCE(NULLIF(:category, ''), category),
+		description = COALESCE(NULLIF(:description, ''), description),
+		stock = COALESCE(NULLIF(:stock, 0), stock),
+		updated_at = now()
+	WHERE product_id = :id RETURNING *`
 
-	if data.Product_name != "" {
-		query += fmt.Sprintf(` product_name = $%d`, len(values)+1)
-		values = append(values, data.Product_name)
-		condition = true
-	}
-	if data.Price != 0 {
-		if condition {
-			query += ","
-		}
-		query += fmt.Sprintf(` price = $%d`, len(values)+1)
-		values = append(values, data.Price)
-		condition = true
-	}
-	if data.Category != "" {
-		if condition {
-			query += ","
-		}
-		query += fmt.Sprintf(` category = $%d`, len(values)+1)
-		values = append(values, data.Category)
-		condition = true
-	}
-	if data.Description != "" {
-		if condition {
-			query += ","
-		}
-		query += fmt.Sprintf(` description = $%d`, len(values)+1)
-		values = append(values, data.Description)
-		condition = true
-	}
-	if data.Stock != 0 {
-		if condition {
-			query += ","
-		}
-		query += fmt.Sprintf(` stock = $%d`, len(values)+1)
-		values = append(values, data.Stock)
-		condition = true
+	params := map[string]interface{}{
+		"product_name": data.Product_name,
+		"price":        data.Price,
+		"category":     data.Category,
+		"description":  data.Description,
+		"stock":        data.Stock,
+		"id":           id,
 	}
 
-	if !condition {
-		return nil, fmt.Errorf("no fields to update")
-	}
-
-	query += fmt.Sprintf(`, updated_at = now() WHERE product_id = $%d RETURNING *`, len(values)+1)
-	values = append(values, id)
-
-	row := r.DB.QueryRow(query, values...)
-	var product models.Product
-	err := row.Scan(
-		&product.Product_id,
-		&product.Product_uuid,
-		&product.Product_name,
-		&product.Price,
-		&product.Category,
-		&product.Description,
-		&product.Stock,
-		&product.Created_at,
-		&product.Updated_at,
-	)
+	rows, err := r.DB.NamedQuery(query, params)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf(`product with id %d not found`, id)
+		return nil, fmt.Errorf("query execution error: %w", err)
+	}
+	defer rows.Close()
+
+	var product models.Product
+	if rows.Next() {
+		err := rows.Scan(
+			&product.Product_id,
+			&product.Product_uuid,
+			&product.Product_name,
+			&product.Price,
+			&product.Category,
+			&product.Description,
+			&product.Stock,
+			&product.Created_at,
+			&product.Updated_at,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("scan error: %w", err)
 		}
-		return nil, fmt.Errorf(`query execution error: %w`, err)
+	} else {
+		return nil, fmt.Errorf("product with id %d not found", id)
 	}
 
 	return &product, nil

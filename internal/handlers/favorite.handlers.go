@@ -34,7 +34,7 @@ func (h *HandlerFavorite) PostFavorite(ctx *gin.Context) {
 }
 
 func (h *HandlerFavorite) GetFavorites(ctx *gin.Context) {
-	pageStr := ctx.Query("page")
+	pageStr := ctx.DefaultQuery("page","1")
 
 	var page int
 	var err error
@@ -45,8 +45,6 @@ func (h *HandlerFavorite) GetFavorites(ctx *gin.Context) {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page number"})
 			return
 		}
-	} else {
-		page = 1
 	}
 
 	query := models.FavoriteQuery{

@@ -34,7 +34,7 @@ func (h *HandlerUser) PostUser(ctx *gin.Context) {
 }
 
 func (h *HandlerUser) GetUsers(ctx *gin.Context) {
-	pageStr := ctx.Query("page")
+	pageStr := ctx.DefaultQuery("page","1")
 
 	var page int
 	var err error
@@ -45,8 +45,6 @@ func (h *HandlerUser) GetUsers(ctx *gin.Context) {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page number"})
 			return
 		}
-	} else {
-		page = 1
 	}
 
 	query := models.UserQuery{
@@ -99,7 +97,7 @@ func (h *HandlerUser) UserDelete(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
 
-func (h *HandlerUser) UserUpdate(ctx *gin.Context) {
+func (h *HandlerUser) PatchUser(ctx *gin.Context) {
 	var user models.User
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
