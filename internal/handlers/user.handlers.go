@@ -3,34 +3,42 @@ package handlers
 import (
 	"khalifgfrz/coffee-shop-be-go/internal/models"
 	"khalifgfrz/coffee-shop-be-go/internal/repository"
+	"khalifgfrz/coffee-shop-be-go/pkg"
 	"net/http"
 	"strconv"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 )
 
 type HandlerUser struct {
-	*repository.RepoUser
+	repository.UserRepositoryInterface
 }
 
-func NewUser(r *repository.RepoUser) *HandlerUser {
+func NewUser(r repository.UserRepositoryInterface) *HandlerUser {
 	return &HandlerUser{r}
 }
 
 func (h *HandlerUser) PostUser(ctx *gin.Context) {
+	response := pkg.NewResponse(ctx)
 	user := models.User{}
-
 	if err := ctx.ShouldBind(&user); err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		response.BadRequest("create data failed", err.Error())
 		return
 	}
 
-	if err := h.CreateUser(&user); err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+	_, err := govalidator.ValidateStruct(&user)
+	if err != nil {
+		response.BadRequest("create data failed", err.Error())
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "User created successfully"})
+	result, err := h.CreateUser(&user)
+	if err != nil {
+		response.BadRequest("create data failed", err.Error())
+		return
+	}
+	response.Created("create data success", result)
 }
 
 func (h *HandlerUser) GetUsers(ctx *gin.Context) {
@@ -50,72 +58,51 @@ func (h *HandlerUser) GetUsers(ctx *gin.Context) {
 	query := models.UserQuery{
 		Page: page,
 	}
-	data, err := h.GetAllUser(&query)
+
+	response := pkg.NewResponse(ctx)
+	result, err := h.GetAllUser(&query)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.InternalServerError("get data failed", err.Error())
 		return
 	}
 
-	if len(*data) == 0 {
-		ctx.JSON(http.StatusNotFound, gin.H{"message": "No users found"})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, data)
+	response.Success("get data success", result)
 }
 
 func (h *HandlerUser) GetUserDetail(ctx *gin.Context) {
-	idParam := ctx.Param("id")
-	id, err := strconv.Atoi(idParam)
+	response := pkg.NewResponse(ctx)
+	id := ctx.Param("id")
+	result, err := h.GetDetailUser(id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		response.InternalServerError("get data failed", err.Error())
 		return
 	}
-
-	data, err := h.GetDetailUser(id)
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, data)
+	response.Success("get data success", result)
 }
 
 func (h *HandlerUser) UserDelete(ctx *gin.Context) {
-	idParam := ctx.Param("id")
-	id, err := strconv.Atoi(idParam)
+	response := pkg.NewResponse(ctx)
+	id := ctx.Param("id")
+	result, err := h.DeleteUser(id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		response.BadRequest("delete data failed", err.Error())
 		return
 	}
-
-	if err := h.DeleteUser(id); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+	response.Success("delete data success", result)
 }
 
 func (h *HandlerUser) PatchUser(ctx *gin.Context) {
-	var user models.User
-	if err := ctx.ShouldBindJSON(&user); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	response := pkg.NewResponse(ctx)
+	id := ctx.Param("id")
+	body := models.User{}
+	if err := ctx.ShouldBind(&body); err != nil {
+		response.BadRequest("update data failed", err.Error())
 		return
 	}
-
-	idParam := ctx.Param("id")
-	id, err := strconv.Atoi(idParam)
+	result, err := h.UpdateUser(&body,id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		response.BadRequest("update data failed", err.Error())
 		return
 	}
-
-	updatedUser, err := h.UpdateUser(&user, id)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, updatedUser)
+	response.Success("update data success", result)
 }

@@ -2,6 +2,7 @@ package routers
 
 import (
 	"khalifgfrz/coffee-shop-be-go/internal/handlers"
+	"khalifgfrz/coffee-shop-be-go/internal/middleware"
 	"khalifgfrz/coffee-shop-be-go/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -11,12 +12,12 @@ import (
 func favorite(g *gin.Engine, d *sqlx.DB) {
 	route := g.Group("/favorite")
 
-	repo := repository.NewFavorite(d)
+	var repo repository.FavoriteRepositoryInterface = repository.NewFavorite(d)
 	handler := handlers.NewFavorite(repo)
 
-	route.GET("/", handler.GetFavorites)
-	route.GET("/:id", handler.GetFavoriteDetail)
-	route.POST("/", handler.PostFavorite)
-	route.DELETE("/:id", handler.FavoriteDelete)
-	route.PATCH("/:id", handler.PatchFavorite)
+	route.GET("/", middleware.AuthJwtMiddleware(), handler.GetFavorites)
+	route.GET("/:id", middleware.AuthJwtMiddleware(), handler.GetFavoriteDetail)
+	route.POST("/", middleware.AuthJwtMiddleware(), handler.PostFavorite)
+	route.DELETE("/:id", middleware.AuthJwtMiddleware(), handler.FavoriteDelete)
+	route.PATCH("/:id", middleware.AuthJwtMiddleware(), handler.PatchFavorite)
 }

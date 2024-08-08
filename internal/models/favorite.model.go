@@ -17,7 +17,7 @@ create table public.favorite (
 `
 
 type Favorite struct {
-	Favorite_id   int        `db:"favorite_id" json:"favorite_id"`
+	Favorite_id   string        `db:"favorite_id" json:"favorite_id"`
 	Favorite_uuid string     `db:"favorite_uuid" json:"favorite_uuid"`
 	First_name    string     `db:"first_name" json:"first_name"`
 	Last_name     string     `db:"last_name" json:"last_name"`
@@ -42,7 +42,7 @@ type PostFavorite struct {
 type Favorites []Favorite
 
 type UpdateFavorite struct {
-	Favorite_id   int        `db:"favorite_id" json:"favorite_id"`
+	Favorite_id   string        `db:"favorite_id" json:"favorite_id"`
 	Favorite_uuid string     `db:"favorite_uuid" json:"favorite_uuid"`
 	User_id    	  int        `db:"user_id" json:"user_id"`
 	Product_id    int        `db:"product_id" json:"product_id"`

@@ -7,6 +7,14 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+type UserRepositoryInterface interface {
+	CreateUser(data *models.User) (string, error)
+	GetAllUser(que *models.UserQuery) (*models.Users, error)
+	GetDetailUser(id string) (*models.User, error)
+	DeleteUser(id string) (string, error)
+	UpdateUser(data *models.User, id string) (string, error)
+}
+
 type RepoUser struct {
 	*sqlx.DB
 }
@@ -15,7 +23,7 @@ func NewUser(db *sqlx.DB) *RepoUser {
 	return &RepoUser{db}
 }
 
-func (r *RepoUser) CreateUser(data *models.User) error {
+func (r *RepoUser) CreateUser(data *models.User) (string, error) {
 	query := `INSERT INTO public.user(
 		first_name,
 		last_name,
@@ -37,11 +45,14 @@ func (r *RepoUser) CreateUser(data *models.User) error {
 	)`
 
 	_, err := r.NamedExec(query, data)
-	return err
+	if err != nil {
+		return "", err
+	}
+	return "data created", nil
 }
 
 func (r *RepoUser) GetAllUser(que *models.UserQuery) (*models.Users, error) {
-	query := `SELECT * FROM public.user order by created_at DESC`
+	query := `SELECT * FROM public.user`
 	var values []interface{}
 
 	if que.Page > 0 {
@@ -57,9 +68,9 @@ func (r *RepoUser) GetAllUser(que *models.UserQuery) (*models.Users, error) {
 	}
 	defer rows.Close()
 
-	var data models.Users
+	data := models.Users{}
 	for rows.Next() {
-		var user models.User
+		user := models.User{}
 		err := rows.Scan(
 			&user.User_id,
 			&user.User_uuid,
@@ -87,91 +98,53 @@ func (r *RepoUser) GetAllUser(que *models.UserQuery) (*models.Users, error) {
 	return &data, nil
 }
 
-func (r *RepoUser) GetDetailUser(id int) (*models.User, error) {
-	query := `SELECT * FROM public.user WHERE user_id = :user_id`
+func (r *RepoUser) GetDetailUser(id string) (*models.User, error) {
+	query := `SELECT * FROM public.user WHERE user_id=$1`
 	data := models.User{}
-
-	rows, err := r.DB.NamedQuery(query, map[string]interface{}{
-		"user_id": id,
-	})
+	err := r.Get(&data, query, id)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	if rows.Next() {
-		err := rows.StructScan(&data)
-		if err != nil {
-			return nil, err
-		}
-		return &data, nil
-	}
-
-	return nil, nil
+	return &data, nil
 }
 
-func (r *RepoUser) DeleteUser(id int) error {
-	query := `DELETE FROM public.user WHERE user_id = :user_id`
-
-	_, err := r.DB.NamedExec(query, map[string]interface{}{
-		"user_id": id,
-	})
-	return err
-}
-
-func (r *RepoUser) UpdateUser(data *models.User, id int) (*models.User, error) {
-	query := `UPDATE public.user SET
-		first_name = COALESCE(NULLIF(:first_name, ''), first_name),
-		last_name = COALESCE(NULLIF(:last_name, ''), last_name),
-		phone = COALESCE(NULLIF(:phone, ''), phone),
-		address = COALESCE(NULLIF(:address, ''), address),
-		birth_date = COALESCE(NULLIF(:birth_date, ''), birth_date),
-		email = COALESCE(NULLIF(:email, ''), email),
-		password = COALESCE(NULLIF(:password, ''), password),
-		role = COALESCE(NULLIF(:role, ''), role),
-		updated_at = now()
-	WHERE user_id = :id RETURNING *`
-
-	params := map[string]interface{}{
-		"first_name": 		data.First_name,
-		"last_name":        data.Last_name,
-		"phone":     		data.Phone,
-		"address":     		data.Address,
-		"birth_date":  		data.Birth_date,
-		"email":        	data.Email,
-		"password":        	data.Password,
-		"role":        		data.Role,
-		"id":           	id,
-	}
-
-	rows, err := r.DB.NamedQuery(query, params)
+func (r *RepoUser) DeleteUser(id string) (string, error) {
+	query := `DELETE FROM public.user WHERE user_id=$1`
+	_, err := r.Exec(query, id)
 	if err != nil {
-		return nil, fmt.Errorf("query execution error: %w", err)
+		return "", err
 	}
-	defer rows.Close()
+	return "data deleted", nil
+}
 
-	var user models.User
-	if rows.Next() {
-		err := rows.Scan(
-			&user.User_id,
-			&user.User_uuid,
-			&user.First_name,
-			&user.Last_name,
-			&user.Phone,
-			&user.Address,
-			&user.Birth_date,
-			&user.Email,
-			&user.Password,
-			&user.Role,
-			&user.Created_at,
-			&user.Updated_at,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("scan error: %w", err)
-		}
-	} else {
-		return nil, fmt.Errorf("user with id %d not found", id)
+func (r *RepoUser) UpdateUser(data *models.User, id string) (string, error) {
+	query := `UPDATE public.user SET
+		first_name = COALESCE(NULLIF($1, ''), first_name),
+		last_name = COALESCE(NULLIF($2, ''), last_name),
+		phone = COALESCE(NULLIF($3, ''), phone),
+		address = COALESCE(NULLIF($4, ''), address),
+		birth_date = COALESCE(NULLIF($5, '')::date, birth_date),
+		email = COALESCE(NULLIF($6, ''), email),
+		password = COALESCE(NULLIF($7, ''), password),
+		role = COALESCE(NULLIF($8, ''), role),
+		updated_at = now()
+	WHERE user_id = $9`
+
+	params := []interface{}{
+		data.First_name,
+		data.Last_name,
+		data.Phone,
+		data.Address,
+		data.Birth_date,
+		data.Email,
+		data.Password,
+		data.Role,
+		id,
 	}
 
-	return &user, nil
+	_, err := r.Exec(query, params...)
+	if err != nil {
+		return "", err
+	}
+	return "data updated", nil
 }

@@ -3,34 +3,42 @@ package handlers
 import (
 	"khalifgfrz/coffee-shop-be-go/internal/models"
 	"khalifgfrz/coffee-shop-be-go/internal/repository"
+	"khalifgfrz/coffee-shop-be-go/pkg"
 	"net/http"
 	"strconv"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 )
 
 type HandlerProduct struct {
-	*repository.RepoProduct
+	repository.ProductRepositoryInterface
 }
 
-func NewProduct(r *repository.RepoProduct) *HandlerProduct {
+func NewProduct(r repository.ProductRepositoryInterface) *HandlerProduct {
 	return &HandlerProduct{r}
 }
 
 func (h *HandlerProduct) PostProduct(ctx *gin.Context) {
+	response := pkg.NewResponse(ctx)
 	product := models.Product{}
-
 	if err := ctx.ShouldBind(&product); err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		response.BadRequest("create data failed", err.Error())
 		return
 	}
 
-	if err := h.CreateProduct(&product); err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+	_, err := govalidator.ValidateStruct(&product)
+	if err != nil {
+		response.BadRequest("create data failed", err.Error())
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Product created successfully"})
+	result, err := h.CreateProduct(&product)
+	if err != nil {
+		response.BadRequest("create data failed", err.Error())
+		return
+	}
+	response.Created("create data success", result)
 }
 
 func (h *HandlerProduct) GetProducts(ctx *gin.Context) {
@@ -77,77 +85,50 @@ func (h *HandlerProduct) GetProducts(ctx *gin.Context) {
 		Page:        page,
 	}
 
-	data, err := h.GetAllProduct(&query)
+	response := pkg.NewResponse(ctx)
+	result, err := h.GetAllProduct(&query)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.InternalServerError("get data failed", err.Error())
 		return
 	}
 
-	if len(*data) == 0 {
-		ctx.JSON(http.StatusNotFound, gin.H{"message": "No products found"})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, data)
+	response.Success("get data success", result)
 }
 
 func (h *HandlerProduct) GetProductDetail(ctx *gin.Context) {
-	idParam := ctx.Param("id")
-	id, err := strconv.Atoi(idParam)
+	response := pkg.NewResponse(ctx)
+	id := ctx.Param("id")
+	result, err := h.GetDetailProduct(id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
+		response.InternalServerError("get data failed", err.Error())
 		return
 	}
-
-	data, err := h.GetDetailProduct(id)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching product details"})
-		return
-	}
-
-	if data == nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, data)
+	response.Success("get data success", result)
 }
 
 func (h *HandlerProduct) ProductDelete(ctx *gin.Context) {
-	idParam := ctx.Param("id")
-	id, err := strconv.Atoi(idParam)
+	response := pkg.NewResponse(ctx)
+	id := ctx.Param("id")
+	result, err := h.DeleteProduct(id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
+		response.BadRequest("delete data failed", err.Error())
 		return
 	}
-
-	if err := h.DeleteProduct(id); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete product"})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{"message": "Product deleted successfully"})
+	response.Success("delete data success", result)
 }
 
 func (h *HandlerProduct) PatchProduct(ctx *gin.Context) {
-	var product models.Product
-	if err := ctx.ShouldBindJSON(&product); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	response := pkg.NewResponse(ctx)
+	id := ctx.Param("id")
+	body := models.Product{}
+	if err := ctx.ShouldBind(&body); err != nil {
+		response.BadRequest("update data failed", err.Error())
 		return
 	}
-
-	idParam := ctx.Param("id")
-	id, err := strconv.Atoi(idParam)
+	result, err := h.UpdateProduct(&body,id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
+		response.BadRequest("update data failed", err.Error())
 		return
 	}
-
-	updatedProduct, err := h.UpdateProduct(&product, id)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, updatedProduct)
+	response.Success("update data success", result)
 }

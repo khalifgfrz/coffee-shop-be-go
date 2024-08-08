@@ -3,34 +3,42 @@ package handlers
 import (
 	"khalifgfrz/coffee-shop-be-go/internal/models"
 	"khalifgfrz/coffee-shop-be-go/internal/repository"
+	"khalifgfrz/coffee-shop-be-go/pkg"
 	"net/http"
 	"strconv"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 )
 
 type HandlerFavorite struct {
-	*repository.RepoFavorite
+	repository.FavoriteRepositoryInterface
 }
 
-func NewFavorite(r *repository.RepoFavorite) *HandlerFavorite {
+func NewFavorite(r repository.FavoriteRepositoryInterface) *HandlerFavorite {
 	return &HandlerFavorite{r}
 }
 
 func (h *HandlerFavorite) PostFavorite(ctx *gin.Context) {
+	response := pkg.NewResponse(ctx)
 	favorite := models.PostFavorite{}
-
 	if err := ctx.ShouldBind(&favorite); err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		response.BadRequest("create data failed", err.Error())
 		return
 	}
 
-	if err := h.CreateFavorite(&favorite); err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+	_, err := govalidator.ValidateStruct(&favorite)
+	if err != nil {
+		response.BadRequest("create data failed", err.Error())
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Favorite product added successfully"})
+	result, err := h.CreateFavorite(&favorite)
+	if err != nil {
+		response.BadRequest("create data failed", err.Error())
+		return
+	}
+	response.Created("create data success", result)
 }
 
 func (h *HandlerFavorite) GetFavorites(ctx *gin.Context) {
@@ -50,77 +58,50 @@ func (h *HandlerFavorite) GetFavorites(ctx *gin.Context) {
 	query := models.FavoriteQuery{
 		Page: page,
 	}
-	data, err := h.GetAllFavorite(&query)
+	response := pkg.NewResponse(ctx)
+	result, err := h.GetAllFavorite(&query)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.InternalServerError("get data failed", err.Error())
 		return
 	}
 
-	if len(*data) == 0 {
-		ctx.JSON(http.StatusNotFound, gin.H{"message": "No favorite found"})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, data)
+	response.Success("get data success", result)
 }
 
 func (h *HandlerFavorite) GetFavoriteDetail(ctx *gin.Context) {
-	idParam := ctx.Param("id")
-	id, err := strconv.Atoi(idParam)
+	response := pkg.NewResponse(ctx)
+	id := ctx.Param("id")
+	result, err := h.GetDetailFavorite(id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid favorite ID"})
+		response.InternalServerError("get data failed", err.Error())
 		return
 	}
-
-	data, err := h.GetDetailFavorite(id)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching favorite details"})
-		return
-	}
-
-	if data == nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Favorite not found"})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, data)
+	response.Success("get data success", result)
 }
 
 func (h *HandlerFavorite) FavoriteDelete(ctx *gin.Context) {
-	idParam := ctx.Param("id")
-	id, err := strconv.Atoi(idParam)
+	response := pkg.NewResponse(ctx)
+	id := ctx.Param("id")
+	result, err := h.DeleteFavorite(id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid favorite ID"})
+		response.BadRequest("delete data failed", err.Error())
 		return
 	}
-
-	if err := h.DeleteFavorite(id); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete favorite product"})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{"message": "Favorite product deleted successfully"})
+	response.Success("delete data success", result)
 }
 
 func (h *HandlerFavorite) PatchFavorite(ctx *gin.Context) {
-	var favorite models.UpdateFavorite
-	if err := ctx.ShouldBindJSON(&favorite); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	response := pkg.NewResponse(ctx)
+	id := ctx.Param("id")
+	body := models.UpdateFavorite{}
+	if err := ctx.ShouldBind(&body); err != nil {
+		response.BadRequest("update data failed", err.Error())
 		return
 	}
-
-	idParam := ctx.Param("id")
-	id, err := strconv.Atoi(idParam)
+	result, err := h.UpdateFavorite(&body,id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid favorite ID"})
+		response.BadRequest("update data failed", err.Error())
 		return
 	}
-
-	updatedFavorite, err := h.UpdateFavorite(&favorite, id)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, updatedFavorite)
+	response.Success("update data success", result)
 }

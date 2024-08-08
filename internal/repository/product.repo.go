@@ -7,6 +7,14 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+type ProductRepositoryInterface interface {
+	CreateProduct(data *models.Product) (string, error)
+	GetAllProduct(que *models.ProductQuery) (*models.Products, error)
+	GetDetailProduct(id string) (*models.Product, error)
+	DeleteProduct(id string) (string, error)
+	UpdateProduct(data *models.Product, id string) (string, error)
+}
+
 type RepoProduct struct {
 	*sqlx.DB
 }
@@ -15,7 +23,7 @@ func NewProduct(db *sqlx.DB) *RepoProduct {
 	return &RepoProduct{db}
 }
 
-func (r *RepoProduct) CreateProduct(data *models.Product) error {
+func (r *RepoProduct) CreateProduct(data *models.Product) (string, error) {
 	query := `INSERT INTO public.product(
 		product_name,
 		price,
@@ -31,7 +39,10 @@ func (r *RepoProduct) CreateProduct(data *models.Product) error {
 	)`
 
 	_, err := r.NamedExec(query, data)
-	return err
+	if err != nil {
+		return "", err
+	}
+	return "data created", nil
 }
 
 func (r *RepoProduct) GetAllProduct(que *models.ProductQuery) (*models.Products, error) {
@@ -99,9 +110,9 @@ func (r *RepoProduct) GetAllProduct(que *models.ProductQuery) (*models.Products,
 	}
 	defer rows.Close()
 
-	var data models.Products
+	data := models.Products{}
 	for rows.Next() {
-		var product models.Product
+		product := models.Product{}
 		err := rows.Scan(
 			&product.Product_id,
 			&product.Product_uuid,
@@ -126,38 +137,25 @@ func (r *RepoProduct) GetAllProduct(que *models.ProductQuery) (*models.Products,
 	return &data, nil
 }
 
-func (r *RepoProduct) GetDetailProduct(id int) (*models.Product, error) {
-	query := `SELECT * FROM public.product WHERE product_id = :product_id`
+func (r *RepoProduct) GetDetailProduct(id string) (*models.Product, error) {
+	query := `SELECT * FROM public.product WHERE product_id=$1`
 	data := models.Product{}
-
-	rows, err := r.DB.NamedQuery(query, map[string]interface{}{
-		"product_id": id,
-	})
+	err := r.Get(&data, query, id)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	if rows.Next() {
-		err := rows.StructScan(&data)
-		if err != nil {
-			return nil, err
-		}
-		return &data, nil
+	return &data, nil
+}
+func (r *RepoProduct) DeleteProduct(id string) (string, error) {
+	query := `DELETE FROM public.product WHERE product_id=$1`
+	_, err := r.Exec(query, id)
+	if err != nil {
+		return "", err
 	}
-
-	return nil, nil
-}
-func (r *RepoProduct) DeleteProduct(id int) error {
-	query := `DELETE FROM public.product WHERE product_id = :product_id`
-
-	_, err := r.DB.NamedExec(query, map[string]interface{}{
-		"product_id": id,
-	})
-	return err
+	return "data deleted", nil
 }
 
-func (r *RepoProduct) UpdateProduct(data *models.Product, id int) (*models.Product, error) {
+func (r *RepoProduct) UpdateProduct(data *models.Product, id string) (string, error) {
 	query := `UPDATE public.product SET
 		product_name = COALESCE(NULLIF(:product_name, ''), product_name),
 		price = COALESCE(NULLIF(:price, 0), price),
@@ -165,7 +163,7 @@ func (r *RepoProduct) UpdateProduct(data *models.Product, id int) (*models.Produ
 		description = COALESCE(NULLIF(:description, ''), description),
 		stock = COALESCE(NULLIF(:stock, 0), stock),
 		updated_at = now()
-	WHERE product_id = :id RETURNING *`
+	WHERE product_id = :id`
 
 	params := map[string]interface{}{
 		"product_name": data.Product_name,
@@ -176,31 +174,9 @@ func (r *RepoProduct) UpdateProduct(data *models.Product, id int) (*models.Produ
 		"id":           id,
 	}
 
-	rows, err := r.DB.NamedQuery(query, params)
+	_, err := r.NamedExec(query, params)
 	if err != nil {
-		return nil, fmt.Errorf("query execution error: %w", err)
+		return "", err
 	}
-	defer rows.Close()
-
-	var product models.Product
-	if rows.Next() {
-		err := rows.Scan(
-			&product.Product_id,
-			&product.Product_uuid,
-			&product.Product_name,
-			&product.Price,
-			&product.Category,
-			&product.Description,
-			&product.Stock,
-			&product.Created_at,
-			&product.Updated_at,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("scan error: %w", err)
-		}
-	} else {
-		return nil, fmt.Errorf("product with id %d not found", id)
-	}
-
-	return &product, nil
+	return "data updated", nil
 }

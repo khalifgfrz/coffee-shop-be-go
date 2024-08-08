@@ -7,6 +7,14 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+type FavoriteRepositoryInterface interface {
+	CreateFavorite(data *models.PostFavorite) (string, error)
+	GetAllFavorite(que *models.FavoriteQuery) (*models.Favorites, error)
+	GetDetailFavorite(id string) (*models.Favorite, error)
+	DeleteFavorite(id string) (string, error)
+	UpdateFavorite(data *models.UpdateFavorite, id string) (string, error)
+}
+
 type RepoFavorite struct {
 	*sqlx.DB
 }
@@ -15,7 +23,7 @@ func NewFavorite(db *sqlx.DB) *RepoFavorite {
 	return &RepoFavorite{db}
 }
 
-func (r *RepoFavorite) CreateFavorite(data *models.PostFavorite) error {
+func (r *RepoFavorite) CreateFavorite(data *models.PostFavorite) (string, error) {
 	query := `INSERT INTO public.favorite(
 		product_id,
 		user_id
@@ -24,8 +32,11 @@ func (r *RepoFavorite) CreateFavorite(data *models.PostFavorite) error {
 		 :user_id
 		)`
 
-	_, err := r.NamedExec(query, data)
-	return err
+		_, err := r.NamedExec(query, data)
+		if err != nil {
+			return "", err
+		}
+		return "data created", nil
 }
 
 func (r *RepoFavorite) GetAllFavorite(que *models.FavoriteQuery) (*models.Favorites, error) {
@@ -49,9 +60,9 @@ func (r *RepoFavorite) GetAllFavorite(que *models.FavoriteQuery) (*models.Favori
 	}
 	defer rows.Close()
 
-	var data models.Favorites
+	data := models.Favorites{}
 	for rows.Next() {
-		var favorite models.Favorite
+		favorite := models.Favorite{}
 		err := rows.Scan(
 			&favorite.Favorite_id,
 			&favorite.Favorite_uuid,
@@ -80,48 +91,35 @@ func (r *RepoFavorite) GetAllFavorite(que *models.FavoriteQuery) (*models.Favori
 	return &data, nil
 }
 
-func (r *RepoFavorite) GetDetailFavorite(id int) (*models.Favorite, error) {
+func (r *RepoFavorite) GetDetailFavorite(id string) (*models.Favorite, error) {
 	query := `SELECT f.favorite_id, f.favorite_uuid, u.first_name, u.last_name, u.phone, u.address,
 	u.email, p.product_name, p.price, p.category, p.description, f.created_at, f.updated_at FROM public.favorite f
 	join public.product p on f.product_id = p.product_id
 	join public.user u on f.user_id = u.user_id
-	WHERE f.favorite_id = :favorite_id`
+	WHERE f.favorite_id=$1`
 	data := models.Favorite{}
-
-	rows, err := r.DB.NamedQuery(query, map[string]interface{}{
-		"favorite_id": id,
-	})
+	err := r.Get(&data, query, id)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	return &data, nil
+}
 
-	if rows.Next() {
-		err := rows.StructScan(&data)
-		if err != nil {
-			return nil, err
-		}
-		return &data, nil
+func (r *RepoFavorite) DeleteFavorite(id string) (string, error) {
+	query := `DELETE FROM public.favorite WHERE favorite_id=$1`
+	_, err := r.Exec(query, id)
+	if err != nil {
+		return "", err
 	}
-
-	return nil, nil
+	return "data deleted", nil
 }
 
-func (r *RepoFavorite) DeleteFavorite(id int) error {
-	query := `DELETE FROM public.favorite WHERE favorite_id = :favorite_id`
-
-	_, err := r.DB.NamedExec(query, map[string]interface{}{
-		"favorite_id": id,
-	})
-	return err
-}
-
-func (r *RepoFavorite) UpdateFavorite(data *models.UpdateFavorite, id int) (*models.Favorite, error) {
+func (r *RepoFavorite) UpdateFavorite(data *models.UpdateFavorite, id string) (string, error) {
 	query := `UPDATE public.favorite SET
 		user_id = COALESCE(NULLIF(:user_id, 0), user_id),
 		product_id = COALESCE(NULLIF(:product_id, 0), product_id),
 		updated_at = now()
-	WHERE favorite_id = :id RETURNING *`
+	WHERE favorite_id = :id`
 
 	params := map[string]interface{}{
 		"user_id": 		data.User_id,
@@ -129,78 +127,9 @@ func (r *RepoFavorite) UpdateFavorite(data *models.UpdateFavorite, id int) (*mod
 		"id":           id,
 	}
 
-	rows, err := r.DB.NamedQuery(query, params)
+	_, err := r.NamedExec(query, params)
 	if err != nil {
-		return nil, fmt.Errorf("query execution error: %w", err)
+		return "", err
 	}
-	defer rows.Close()
-
-	var favorite models.Favorite
-	if rows.Next() {
-		err := rows.Scan(
-			&favorite.Favorite_id,
-			&favorite.Favorite_uuid,
-			&favorite.First_name,
-			&favorite.Last_name,
-			&favorite.Phone,
-			&favorite.Address,
-			&favorite.Email,
-			&favorite.Product_name,
-			&favorite.Price,
-			&favorite.Category,
-			&favorite.Description,
-			&favorite.Created_at,
-			&favorite.Updated_at,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("scan error: %w", err)
-		}
-	} else {
-		return nil, fmt.Errorf("product with id %d not found", id)
-	}
-
-	return &favorite, nil
-	// query := `UPDATE public.favorite SET`
-	// var values []interface{}
-	// condition := false
-
-	// if data.User_id != 0 {
-	// 	query += fmt.Sprintf(` user_id = $%d`, len(values)+1)
-	// 	values = append(values, data.User_id)
-	// 	condition = true
-	// }
-	// if data.Product_id != 0 {
-	// 	if condition {
-	// 		query += ","
-	// 	}
-	// 	query += fmt.Sprintf(` product_id = $%d`, len(values)+1)
-	// 	values = append(values, data.Product_id)
-	// 	condition = true
-	// }
-	// if !condition {
-	// 	return nil, fmt.Errorf("no fields to update")
-	// }
-
-	// query += fmt.Sprintf(`, updated_at = now() WHERE favorite_id = $%d RETURNING *`, len(values)+1)
-	// values = append(values, id)
-
-	// row := r.DB.QueryRow(query, values...)
-	// var favorite models.UpdateFavorite
-	// err := row.Scan(
-	// 	&favorite.Favorite_id,
-	// 	&favorite.Favorite_uuid,
-	// 	&favorite.User_id,
-	// 	&favorite.Product_id,
-	// 	&favorite.Created_at,
-	// 	&favorite.Updated_at,
-	// )
-
-	// if err != nil {
-	// 	if err == sql.ErrNoRows {
-	// 		return nil, fmt.Errorf(`favorite with id %d not found`, id)	
-	// 	}
-	// 	return nil, fmt.Errorf(`query execution error: %w`, err)
-	// }
-
-	// return &favorite, nil
+	return "data updated", nil
 }
