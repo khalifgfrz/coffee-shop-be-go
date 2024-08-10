@@ -54,39 +54,10 @@ func (r *RepoFavorite) GetAllFavorite(que *models.FavoriteQuery) (*models.Favori
 		values = append(values, limit, offset)
 	}
 	
-	rows, err := r.DB.Query(query, values...)
-	if err != nil {
-		return nil, err
-	}
-
-	defer rows.Close()
 	data := models.Favorites{}
-	for rows.Next() {
-		favorite := models.Favorite{}
-		err := rows.Scan(
-			&favorite.Favorite_id,
-			&favorite.Favorite_uuid,
-			&favorite.First_name,
-			&favorite.Last_name,
-			&favorite.Phone,
-			&favorite.Address,
-			&favorite.Email,
-			&favorite.User_image,
-			&favorite.Product_name,
-			&favorite.Price,
-			&favorite.Category,
-			&favorite.Description,
-			&favorite.Product_image,
-			&favorite.Created_at,
-			&favorite.Updated_at,
-		)
-		if err != nil {
-			return nil, err
-		}
-		data = append(data, favorite)
-	}
 
-	if err := rows.Err(); err != nil {
+	err := r.DB.Select(&data, query, values...)
+	if err != nil {
 		return nil, err
 	}
 

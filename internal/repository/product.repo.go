@@ -106,34 +106,10 @@ func (r *RepoProduct) GetAllProduct(que *models.ProductQuery) (*models.Products,
 		values = append(values, limit, offset)
 	}
 	
-	rows, err := r.DB.Query(query, values...)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
 	data := models.Products{}
-	for rows.Next() {
-		product := models.Product{}
-		err := rows.Scan(
-			&product.Product_id,
-			&product.Product_uuid,
-			&product.Product_name,
-			&product.Price,
-			&product.Category,
-			&product.Description,
-			&product.Stock,
-			&product.Product_image,
-			&product.Created_at,
-			&product.Updated_at,
-		)
-		if err != nil {
-			return nil, err
-		}
-		data = append(data, product)
-	}
 
-	if err := rows.Err(); err != nil {
+	err := r.DB.Select(&data, query, values...)
+	if err != nil {
 		return nil, err
 	}
 

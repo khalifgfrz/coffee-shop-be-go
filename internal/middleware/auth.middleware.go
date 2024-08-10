@@ -27,7 +27,7 @@ func AuthJwtMiddleware() gin.HandlerFunc {
 
 		check, err := pkg.VerifyToken(token)
 		if err != nil {
-			response.Unauthorized("Inavlid Bearer Token", nil)
+			response.Unauthorized("Invalid Bearer Token", nil)
 			return
 		}
 

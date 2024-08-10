@@ -64,37 +64,10 @@ func (r *RepoUser) GetAllUser(que *models.UserQuery) (*models.Users, error) {
 		values = append(values, limit, offset)
 	}
 	
-	rows, err := r.DB.Query(query, values...)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
 	data := models.Users{}
-	for rows.Next() {
-		user := models.User{}
-		err := rows.Scan(
-			&user.User_id,
-			&user.User_uuid,
-			&user.First_name,
-			&user.Last_name,
-			&user.Phone,
-			&user.Address,
-			&user.Birth_date,
-			&user.Email,
-			&user.Password,
-			&user.Role,
-			&user.User_image,
-			&user.Created_at,
-			&user.Updated_at,
-		)
-		if err != nil {
-			return nil, err
-		}
-		data = append(data, user)
-	}
 
-	if err := rows.Err(); err != nil {
+	err := r.DB.Select(&data, query, values...)
+	if err != nil {
 		return nil, err
 	}
 

@@ -22,17 +22,17 @@ create table public.user (
 `
 
 type User struct {
-	User_id	     string    	`db:"user_id" json:"user_id" form:"user_id" valid:"-"`
+	User_id	     string     `db:"user_id" json:"user_id" form:"user_id" valid:"-"`
 	User_uuid	 string     `db:"user_uuid" json:"user_uuid" form:"user_uuid" valid:"-"`
-	First_name   string     `db:"first_name" json:"first_name" form:"first_name" valid:"-"`
-	Last_name    string     `db:"last_name" json:"last_name" form:"last_name" valid:"-"`
-	Phone		 string     `db:"phone" json:"phone" form:"phone" valid:"-"`
-	Address		 string     `db:"address" json:"address" form:"address" valid:"stringlength(5|256)~Alamat minimal 5"`
-	Birth_date 	 string     `db:"birth_date" json:"birth_date" form:"birth_date" valid:"-"`
+	First_name   *string     `db:"first_name" json:"first_name" form:"first_name" valid:"-"`
+	Last_name    *string     `db:"last_name" json:"last_name" form:"last_name" valid:"-"`
+	Phone		 *string     `db:"phone" json:"phone" form:"phone" valid:"-"`
+	Address		 *string     `db:"address" json:"address" form:"address" valid:"stringlength(5|256)~Alamat minimal 5"`
+	Birth_date 	 *string     `db:"birth_date" json:"birth_date" form:"birth_date" valid:"-"`
 	Email	 	 string     `db:"email" json:"email" form:"email" valid:"email"`
 	Password	 string     `db:"password" json:"password" form:"password" valid:"stringlength(5|256)~Password minimal 5 karakter"`
 	Role	 	 string     `db:"role" json:"role" form:"role" valid:"-"`
-	User_image   string     `db:"user_image" json:"user_image" valid:"-"`
+	User_image   *string     `db:"user_image" json:"user_image" valid:"-"`
 	Created_at   *time.Time `db:"created_at" json:"created_at" valid:"-"`
 	Updated_at   *time.Time `db:"updated_at" json:"updated_at" valid:"-"`
 }
