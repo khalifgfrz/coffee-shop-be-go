@@ -9,8 +9,8 @@ import (
 
 type UserRepositoryInterface interface {
 	CreateUser(data *models.User) (string, error)
-	GetAllUser(que *models.UserQuery) (*models.Users, error)
-	GetDetailUser(id string) (*models.User, error)
+	GetAllUser(que *models.UserQuery) (*models.GetUsers, error)
+	GetDetailUser(id string) (*models.GetUser, error)
 	DeleteUser(id string) (string, error)
 	UpdateUser(data *models.User, id string) (string, error)
 }
@@ -53,7 +53,7 @@ func (r *RepoUser) CreateUser(data *models.User) (string, error) {
 	return "data created", nil
 }
 
-func (r *RepoUser) GetAllUser(que *models.UserQuery) (*models.Users, error) {
+func (r *RepoUser) GetAllUser(que *models.UserQuery) (*models.GetUsers, error) {
 	query := `SELECT * FROM public.user`
 	var values []interface{}
 
@@ -64,7 +64,7 @@ func (r *RepoUser) GetAllUser(que *models.UserQuery) (*models.Users, error) {
 		values = append(values, limit, offset)
 	}
 	
-	data := models.Users{}
+	data := models.GetUsers{}
 
 	err := r.DB.Select(&data, query, values...)
 	if err != nil {
@@ -74,9 +74,9 @@ func (r *RepoUser) GetAllUser(que *models.UserQuery) (*models.Users, error) {
 	return &data, nil
 }
 
-func (r *RepoUser) GetDetailUser(id string) (*models.User, error) {
+func (r *RepoUser) GetDetailUser(id string) (*models.GetUser, error) {
 	query := `SELECT * FROM public.user WHERE user_id=$1`
-	data := models.User{}
+	data := models.GetUser{}
 	err := r.Get(&data, query, id)
 	if err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ func (r *RepoUser) UpdateUser(data *models.User, id string) (string, error) {
 		role = COALESCE(NULLIF($8, ''), role),
 		user_image = COALESCE(NULLIF($9, ''), user_image),
 		updated_at = now()
-	WHERE user_id = $9`
+	WHERE user_id = $10`
 
 	params := []interface{}{
 		data.First_name,

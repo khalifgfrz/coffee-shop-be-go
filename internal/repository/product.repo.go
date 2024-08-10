@@ -9,8 +9,8 @@ import (
 
 type ProductRepositoryInterface interface {
 	CreateProduct(data *models.Product) (string, error)
-	GetAllProduct(que *models.ProductQuery) (*models.Products, error)
-	GetDetailProduct(id string) (*models.Product, error)
+	GetAllProduct(que *models.ProductQuery) (*models.GetProducts, error)
+	GetDetailProduct(id string) (*models.GetProduct, error)
 	DeleteProduct(id string) (string, error)
 	UpdateProduct(data *models.Product, id string) (string, error)
 }
@@ -47,7 +47,7 @@ func (r *RepoProduct) CreateProduct(data *models.Product) (string, error) {
 	return "data created", nil
 }
 
-func (r *RepoProduct) GetAllProduct(que *models.ProductQuery) (*models.Products, error) {
+func (r *RepoProduct) GetAllProduct(que *models.ProductQuery) (*models.GetProducts, error) {
 	query := `SELECT * FROM public.product`
 	var values []interface{}
 	condition := false
@@ -106,7 +106,7 @@ func (r *RepoProduct) GetAllProduct(que *models.ProductQuery) (*models.Products,
 		values = append(values, limit, offset)
 	}
 	
-	data := models.Products{}
+	data := models.GetProducts{}
 
 	err := r.DB.Select(&data, query, values...)
 	if err != nil {
@@ -116,9 +116,9 @@ func (r *RepoProduct) GetAllProduct(que *models.ProductQuery) (*models.Products,
 	return &data, nil
 }
 
-func (r *RepoProduct) GetDetailProduct(id string) (*models.Product, error) {
+func (r *RepoProduct) GetDetailProduct(id string) (*models.GetProduct, error) {
 	query := `SELECT * FROM public.product WHERE product_id=$1`
-	data := models.Product{}
+	data := models.GetProduct{}
 	err := r.Get(&data, query, id)
 	if err != nil {
 		return nil, err
@@ -141,9 +141,10 @@ func (r *RepoProduct) UpdateProduct(data *models.Product, id string) (string, er
 		category = COALESCE(NULLIF(:category, ''), category),
 		description = COALESCE(NULLIF(:description, ''), description),
 		stock = COALESCE(NULLIF(:stock, 0), stock),
-		product_image = COALESCE(NULLIF(:product_image, ''), stock),
+		product_image = COALESCE(NULLIF(:product_image, ''), product_image),
 		updated_at = now()
-	WHERE product_id = :id`
+	WHERE product_id = :id
+	`
 
 	params := map[string]interface{}{
 		"product_name":  data.Product_name,

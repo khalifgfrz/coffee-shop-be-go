@@ -21,7 +21,7 @@ func NewFavorite(r repository.FavoriteRepositoryInterface) *HandlerFavorite {
 
 func (h *HandlerFavorite) PostFavorite(ctx *gin.Context) {
 	response := pkg.NewResponse(ctx)
-	favorite := models.PostFavorite{}
+	favorite := models.Favorite{}
 	if err := ctx.ShouldBind(&favorite); err != nil {
 		response.BadRequest("create data failed", err.Error())
 		return
@@ -93,7 +93,7 @@ func (h *HandlerFavorite) FavoriteDelete(ctx *gin.Context) {
 func (h *HandlerFavorite) PatchFavorite(ctx *gin.Context) {
 	response := pkg.NewResponse(ctx)
 	id := ctx.Param("id")
-	body := models.UpdateFavorite{}
+	body := models.Favorite{}
 	if err := ctx.ShouldBind(&body); err != nil {
 		response.BadRequest("update data failed", err.Error())
 		return

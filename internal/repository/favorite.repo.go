@@ -8,11 +8,11 @@ import (
 )
 
 type FavoriteRepositoryInterface interface {
-	CreateFavorite(data *models.PostFavorite) (string, error)
-	GetAllFavorite(que *models.FavoriteQuery) (*models.Favorites, error)
-	GetDetailFavorite(id string) (*models.Favorite, error)
+	CreateFavorite(data *models.Favorite) (string, error)
+	GetAllFavorite(que *models.FavoriteQuery) (*models.GetFavorites, error)
+	GetDetailFavorite(id string) (*models.GetFavorite, error)
 	DeleteFavorite(id string) (string, error)
-	UpdateFavorite(data *models.UpdateFavorite, id string) (string, error)
+	UpdateFavorite(data *models.Favorite, id string) (string, error)
 }
 
 type RepoFavorite struct {
@@ -23,7 +23,7 @@ func NewFavorite(db *sqlx.DB) *RepoFavorite {
 	return &RepoFavorite{db}
 }
 
-func (r *RepoFavorite) CreateFavorite(data *models.PostFavorite) (string, error) {
+func (r *RepoFavorite) CreateFavorite(data *models.Favorite) (string, error) {
 	query := `INSERT INTO public.favorite(
 		product_id,
 		user_id
@@ -39,7 +39,7 @@ func (r *RepoFavorite) CreateFavorite(data *models.PostFavorite) (string, error)
 		return "data created", nil
 }
 
-func (r *RepoFavorite) GetAllFavorite(que *models.FavoriteQuery) (*models.Favorites, error) {
+func (r *RepoFavorite) GetAllFavorite(que *models.FavoriteQuery) (*models.GetFavorites, error) {
 	query := `SELECT f.favorite_id, f.favorite_uuid, u.first_name, u.last_name, u.phone, u.address,
 	u.email, u.user_image, p.product_name, p.price, p.category, p.description, p.product_image, f.created_at, f.updated_at FROM public.favorite f
 	join public.product p on f.product_id = p.product_id
@@ -54,7 +54,7 @@ func (r *RepoFavorite) GetAllFavorite(que *models.FavoriteQuery) (*models.Favori
 		values = append(values, limit, offset)
 	}
 	
-	data := models.Favorites{}
+	data := models.GetFavorites{}
 
 	err := r.DB.Select(&data, query, values...)
 	if err != nil {
@@ -64,14 +64,14 @@ func (r *RepoFavorite) GetAllFavorite(que *models.FavoriteQuery) (*models.Favori
 	return &data, nil
 }
 
-func (r *RepoFavorite) GetDetailFavorite(id string) (*models.Favorite, error) {
+func (r *RepoFavorite) GetDetailFavorite(id string) (*models.GetFavorite, error) {
 	query := `SELECT f.favorite_id, f.favorite_uuid, u.first_name, u.last_name, u.phone, u.address,
 	u.email, u.user_image, p.product_name, p.price, p.category, p.description, p.product_image,
 	f.created_at, f.updated_at FROM public.favorite f
 	join public.product p on f.product_id = p.product_id
 	join public.user u on f.user_id = u.user_id
 	WHERE f.favorite_id=$1`
-	data := models.Favorite{}
+	data := models.GetFavorite{}
 	err := r.Get(&data, query, id)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func (r *RepoFavorite) DeleteFavorite(id string) (string, error) {
 	return "data deleted", nil
 }
 
-func (r *RepoFavorite) UpdateFavorite(data *models.UpdateFavorite, id string) (string, error) {
+func (r *RepoFavorite) UpdateFavorite(data *models.Favorite, id string) (string, error) {
 	query := `UPDATE public.favorite SET
 		user_id = COALESCE(NULLIF(:user_id, 0), user_id),
 		product_id = COALESCE(NULLIF(:product_id, 0), product_id),
