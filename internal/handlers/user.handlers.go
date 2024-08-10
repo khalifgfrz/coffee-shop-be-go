@@ -33,6 +33,12 @@ func (h *HandlerUser) PostUser(ctx *gin.Context) {
 		return
 	}
 
+	user.Password, err = pkg.HashPassword(user.Password)
+	if err != nil {
+		response.BadRequest("create data failed", err.Error())
+		return
+	}
+
 	result, err := h.CreateUser(&user)
 	if err != nil {
 		response.BadRequest("create data failed", err.Error())

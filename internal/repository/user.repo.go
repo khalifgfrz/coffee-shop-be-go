@@ -32,7 +32,8 @@ func (r *RepoUser) CreateUser(data *models.User) (string, error) {
 		birth_date,
 		email,
 		password,
-		role
+		role,
+		user_image
 	) VALUES(
 	 	:first_name,
 		:last_name,
@@ -41,7 +42,8 @@ func (r *RepoUser) CreateUser(data *models.User) (string, error) {
 		:birth_date,
 		:email,
 		:password,
-		:role
+		:role,
+		:user_image
 	)`
 
 	_, err := r.NamedExec(query, data)
@@ -82,6 +84,7 @@ func (r *RepoUser) GetAllUser(que *models.UserQuery) (*models.Users, error) {
 			&user.Email,
 			&user.Password,
 			&user.Role,
+			&user.User_image,
 			&user.Created_at,
 			&user.Updated_at,
 		)
@@ -127,6 +130,7 @@ func (r *RepoUser) UpdateUser(data *models.User, id string) (string, error) {
 		email = COALESCE(NULLIF($6, ''), email),
 		password = COALESCE(NULLIF($7, ''), password),
 		role = COALESCE(NULLIF($8, ''), role),
+		user_image = COALESCE(NULLIF($9, ''), user_image),
 		updated_at = now()
 	WHERE user_id = $9`
 
@@ -139,6 +143,7 @@ func (r *RepoUser) UpdateUser(data *models.User, id string) (string, error) {
 		data.Email,
 		data.Password,
 		data.Role,
+		data.User_image,
 		id,
 	}
 

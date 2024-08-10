@@ -29,13 +29,15 @@ func (r *RepoProduct) CreateProduct(data *models.Product) (string, error) {
 		price,
 		category,
 		description,
-		stock
+		stock,
+		product_image
 	) VALUES(
 	 	:product_name,
 		:price,
 		:category,
 		:description,
-		:stock
+		:stock,
+		:product_image
 	)`
 
 	_, err := r.NamedExec(query, data)
@@ -121,6 +123,7 @@ func (r *RepoProduct) GetAllProduct(que *models.ProductQuery) (*models.Products,
 			&product.Category,
 			&product.Description,
 			&product.Stock,
+			&product.Product_image,
 			&product.Created_at,
 			&product.Updated_at,
 		)
@@ -162,16 +165,18 @@ func (r *RepoProduct) UpdateProduct(data *models.Product, id string) (string, er
 		category = COALESCE(NULLIF(:category, ''), category),
 		description = COALESCE(NULLIF(:description, ''), description),
 		stock = COALESCE(NULLIF(:stock, 0), stock),
+		product_image = COALESCE(NULLIF(:product_image, ''), stock),
 		updated_at = now()
 	WHERE product_id = :id`
 
 	params := map[string]interface{}{
-		"product_name": data.Product_name,
-		"price":        data.Price,
-		"category":     data.Category,
-		"description":  data.Description,
-		"stock":        data.Stock,
-		"id":           id,
+		"product_name":  data.Product_name,
+		"price":         data.Price,
+		"category":      data.Category,
+		"description":   data.Description,
+		"stock":         data.Stock,
+		"product_image": data.Product_image,
+		"id":            id,
 	}
 
 	_, err := r.NamedExec(query, params)

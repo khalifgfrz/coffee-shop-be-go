@@ -41,7 +41,7 @@ func (r *RepoFavorite) CreateFavorite(data *models.PostFavorite) (string, error)
 
 func (r *RepoFavorite) GetAllFavorite(que *models.FavoriteQuery) (*models.Favorites, error) {
 	query := `SELECT f.favorite_id, f.favorite_uuid, u.first_name, u.last_name, u.phone, u.address,
-	u.email, p.product_name, p.price, p.category, p.description, f.created_at, f.updated_at FROM public.favorite f
+	u.email, u.user_image, p.product_name, p.price, p.category, p.description, p.product_image, f.created_at, f.updated_at FROM public.favorite f
 	join public.product p on f.product_id = p.product_id
 	join public.user u on f.user_id = u.user_id
 	order by f.created_at DESC`
@@ -58,8 +58,8 @@ func (r *RepoFavorite) GetAllFavorite(que *models.FavoriteQuery) (*models.Favori
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
+	defer rows.Close()
 	data := models.Favorites{}
 	for rows.Next() {
 		favorite := models.Favorite{}
@@ -71,10 +71,12 @@ func (r *RepoFavorite) GetAllFavorite(que *models.FavoriteQuery) (*models.Favori
 			&favorite.Phone,
 			&favorite.Address,
 			&favorite.Email,
+			&favorite.User_image,
 			&favorite.Product_name,
 			&favorite.Price,
 			&favorite.Category,
 			&favorite.Description,
+			&favorite.Product_image,
 			&favorite.Created_at,
 			&favorite.Updated_at,
 		)
@@ -93,7 +95,8 @@ func (r *RepoFavorite) GetAllFavorite(que *models.FavoriteQuery) (*models.Favori
 
 func (r *RepoFavorite) GetDetailFavorite(id string) (*models.Favorite, error) {
 	query := `SELECT f.favorite_id, f.favorite_uuid, u.first_name, u.last_name, u.phone, u.address,
-	u.email, p.product_name, p.price, p.category, p.description, f.created_at, f.updated_at FROM public.favorite f
+	u.email, u.user_image, p.product_name, p.price, p.category, p.description, p.product_image,
+	f.created_at, f.updated_at FROM public.favorite f
 	join public.product p on f.product_id = p.product_id
 	join public.user u on f.user_id = u.user_id
 	WHERE f.favorite_id=$1`

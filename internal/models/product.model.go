@@ -11,22 +11,24 @@ create table public.product (
 	category varchar(255) not null,
 	description varchar(255),
 	stock int not null,
-	created_at timestamptz default now(),
-	updated_at timestamptz,
+	image varchar,
+	created_at timestamp without time zone default now(),
+	updated_at timestamp without time zone,
 	constraint product_pk primary key(product_id)
 );
 `
 
 type Product struct {
-	Product_id   string     `db:"product_id" json:"product_id" valid:"-"`
-	Product_uuid string     `db:"product_uuid" json:"product_uuid" valid:"-"`
-	Product_name string     `db:"product_name" json:"product_name" valid:"stringlength(5|100)~Nama Product minimal 5 dan maksimal 100"`
-	Price	     int	    `db:"price" json:"price" valid:"-"`
-	Category     string     `db:"category" json:"category" valid:"type(string)"`
-	Description  string     `db:"description" json:"description" valid:"type(string)"`
-	Stock	     int	    `db:"stock" json:"stock" valid:"-"`
-	Created_at   *time.Time `db:"created_at" json:"created_at" valid:"-"`
-	Updated_at   *time.Time `db:"updated_at" json:"updated_at" valid:"-"`
+	Product_id    string     `db:"product_id" json:"product_id" form:"product_id" valid:"-"`
+	Product_uuid  string     `db:"product_uuid" json:"product_uuid" form:"product_uuid" valid:"-"`
+	Product_name  string     `db:"product_name" json:"product_name" form:"product_name" valid:"stringlength(5|100)~Nama Product minimal 5 dan maksimal 100"`
+	Price	      int	     `db:"price" json:"price" form:"price" valid:"-"`
+	Category      string     `db:"category" json:"category" form:"category" valid:"type(string)"`
+	Description   string     `db:"description" json:"description" form:"description" valid:"type(string)"`
+	Stock	      int	     `db:"stock" json:"stock" form:"stock" valid:"-"`
+	Product_image string     `db:"product_image" json:"product_image" valid:"-"`
+	Created_at    *time.Time `db:"created_at" json:"created_at" valid:"-"`
+	Updated_at    *time.Time `db:"updated_at" json:"updated_at" valid:"-"`
 }
 
 type Products []Product

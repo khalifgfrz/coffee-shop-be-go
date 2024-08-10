@@ -17,17 +17,19 @@ create table public.favorite (
 `
 
 type Favorite struct {
-	Favorite_id   string        `db:"favorite_id" json:"favorite_id"`
+	Favorite_id   string     `db:"favorite_id" json:"favorite_id"`
 	Favorite_uuid string     `db:"favorite_uuid" json:"favorite_uuid"`
 	First_name    string     `db:"first_name" json:"first_name"`
 	Last_name     string     `db:"last_name" json:"last_name"`
 	Phone         string     `db:"phone" json:"phone"`
 	Address       string     `db:"address" json:"address"`
 	Email         string     `db:"email" json:"email"`
+	User_image    string     `db:"user_image" json:"user_image" valid:"-"`
 	Product_name  string     `db:"product_name" json:"product_name"`
 	Price	      int	     `db:"price" json:"price"`
 	Category      string     `db:"category" json:"category"`
 	Description   string     `db:"description" json:"description"`
+	Product_image string     `db:"product_image" json:"product_image" valid:"-"`
 	Created_at    *time.Time `db:"created_at" json:"created_at"`
 	Updated_at    *time.Time `db:"updated_at" json:"updated_at"`
 }
