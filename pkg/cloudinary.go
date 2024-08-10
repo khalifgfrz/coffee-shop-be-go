@@ -16,8 +16,8 @@ type Cloudinary struct {
 func NewCloudinaryUtil() *Cloudinary {
 	cld, err := cloudinary.NewFromParams(
 		os.Getenv("CLOUD_NAME"),
-		os.Getenv("API_KEY"),
-		os.Getenv("API_SECRET"),
+		os.Getenv("CLOUD_KEY"),
+		os.Getenv("CLOUD_SECRET"),
 	)
 	if err != nil {
 		log.Fatal("Failed to initiate Cloudinary: %w", err)

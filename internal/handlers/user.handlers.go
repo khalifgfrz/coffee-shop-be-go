@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"fmt"
 	"khalifgfrz/coffee-shop-be-go/internal/models"
 	"khalifgfrz/coffee-shop-be-go/internal/repository"
 	"khalifgfrz/coffee-shop-be-go/pkg"
+	"math/rand"
 	"net/http"
 	"strconv"
 
@@ -13,10 +15,11 @@ import (
 
 type HandlerUser struct {
 	repository.UserRepositoryInterface
+	pkg.Cloudinary
 }
 
-func NewUser(r repository.UserRepositoryInterface) *HandlerUser {
-	return &HandlerUser{r}
+func NewUser(r repository.UserRepositoryInterface, cld pkg.Cloudinary) *HandlerUser {
+	return &HandlerUser{r, cld}
 }
 
 func (h *HandlerUser) PostUser(ctx *gin.Context) {
@@ -105,6 +108,29 @@ func (h *HandlerUser) PatchUser(ctx *gin.Context) {
 		response.BadRequest("update data failed", err.Error())
 		return
 	}
+	file, header, err := ctx.Request.FormFile("image")
+	if err != nil {
+		response.BadRequest("create data failed, upload file failed", err.Error())
+		return
+	}
+	if header.Size > 1*1024*1024 {
+		response.BadRequest("create data failed, upload file failed, file too large", nil)
+		return
+	}
+	mimeType := header.Header.Get("Content-Type")
+	if mimeType != "image/jpg" && mimeType != "image/png" {
+		response.BadRequest("create data failed, upload file failed, wrong file type", nil)
+		return
+	}
+	// upload file
+	randomNumber := rand.Int()
+	fileName := fmt.Sprintf("coffee-user-%d", randomNumber)
+	uploadResult, err := h.UploadFile(ctx, file, fileName)
+	if err != nil {
+		response.BadRequest("create data failed, upload file failed", err.Error())
+		return
+	}
+	body.User_image = uploadResult.SecureURL
 	result, err := h.UpdateUser(&body,id)
 	if err != nil {
 		response.BadRequest("update data failed", err.Error())

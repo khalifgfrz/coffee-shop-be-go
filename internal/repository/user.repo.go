@@ -33,7 +33,6 @@ func (r *RepoUser) CreateUser(data *models.User) (string, error) {
 		email,
 		password,
 		role,
-		user_image
 	) VALUES(
 	 	:first_name,
 		:last_name,
@@ -43,7 +42,6 @@ func (r *RepoUser) CreateUser(data *models.User) (string, error) {
 		:email,
 		:password,
 		:role,
-		:user_image
 	)`
 
 	_, err := r.NamedExec(query, data)

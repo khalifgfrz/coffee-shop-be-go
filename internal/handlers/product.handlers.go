@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"fmt"
 	"khalifgfrz/coffee-shop-be-go/internal/models"
 	"khalifgfrz/coffee-shop-be-go/internal/repository"
 	"khalifgfrz/coffee-shop-be-go/pkg"
+	"math/rand"
 	"net/http"
 	"strconv"
 
@@ -13,10 +15,11 @@ import (
 
 type HandlerProduct struct {
 	repository.ProductRepositoryInterface
+	pkg.Cloudinary
 }
 
-func NewProduct(r repository.ProductRepositoryInterface) *HandlerProduct {
-	return &HandlerProduct{r}
+func NewProduct(r repository.ProductRepositoryInterface, cld pkg.Cloudinary) *HandlerProduct {
+	return &HandlerProduct{r, cld}
 }
 
 func (h *HandlerProduct) PostProduct(ctx *gin.Context) {
@@ -32,6 +35,29 @@ func (h *HandlerProduct) PostProduct(ctx *gin.Context) {
 		response.BadRequest("create data failed", err.Error())
 		return
 	}
+
+	file, header, err := ctx.Request.FormFile("image")
+	if err != nil {
+		response.BadRequest("create data failed, upload file failed", err.Error())
+		return
+	}
+	if header.Size > 1*1024*1024 {
+		response.BadRequest("create data failed, upload file failed, file too large", nil)
+		return
+	}
+	mimeType := header.Header.Get("Content-Type")
+	if mimeType != "image/jpg" && mimeType != "image/png" {
+		response.BadRequest("create data failed, upload file failed, wrong file type", err)
+		return
+	}
+	randomNumber := rand.Int()
+	fileName := fmt.Sprintf("coffee-product-%d", randomNumber)
+	uploadResult, err := h.UploadFile(ctx, file, fileName)
+	if err != nil {
+		response.BadRequest("create data failed, upload file failed", err.Error())
+		return
+	}
+	product.Product_image = uploadResult.SecureURL
 
 	result, err := h.CreateProduct(&product)
 	if err != nil {
@@ -125,6 +151,28 @@ func (h *HandlerProduct) PatchProduct(ctx *gin.Context) {
 		response.BadRequest("update data failed", err.Error())
 		return
 	}
+	file, header, err := ctx.Request.FormFile("image")
+	if err != nil {
+		response.BadRequest("create data failed, upload file failed", err.Error())
+		return
+	}
+	if header.Size > 1*1024*1024 {
+		response.BadRequest("create data failed, upload file failed, file too large", nil)
+		return
+	}
+	mimeType := header.Header.Get("Content-Type")
+	if mimeType != "image/jpg" && mimeType != "image/png" {
+		response.BadRequest("create data failed, upload file failed, wrong file type", err)
+		return
+	}
+	randomNumber := rand.Int()
+	fileName := fmt.Sprintf("coffee-product-%d", randomNumber)
+	uploadResult, err := h.UploadFile(ctx, file, fileName)
+	if err != nil {
+		response.BadRequest("create data failed, upload file failed", err.Error())
+		return
+	}
+	body.Product_image = uploadResult.SecureURL
 	result, err := h.UpdateProduct(&body,id)
 	if err != nil {
 		response.BadRequest("update data failed", err.Error())
