@@ -19,7 +19,7 @@ func product(g *gin.Engine, d *sqlx.DB) {
 
 	route.GET("/", handler.GetProducts)
 	route.GET("/:id", handler.GetProductDetail)
-	route.POST("/", middleware.AuthJwtMiddleware(), handler.PostProduct)
-	route.DELETE("/:id", middleware.AuthJwtMiddleware(), handler.ProductDelete)
-	route.PATCH("/:id", middleware.AuthJwtMiddleware(), handler.PatchProduct)
+	route.POST("/", middleware.AdminAuthMiddleware(), handler.PostProduct)
+	route.DELETE("/:id", middleware.AdminAuthMiddleware(), handler.ProductDelete)
+	route.PATCH("/:id", middleware.AdminAuthMiddleware(), handler.PatchProduct)
 }
