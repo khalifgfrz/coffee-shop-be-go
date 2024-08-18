@@ -16,3 +16,5 @@ migrate-down:
 # make migrate-fix
 migrate-fix:
 	migrate -path ${MIGRATIONS_DIR} -database ${DB_SOURCE} force 0
+
+go run ./cmd/main.go

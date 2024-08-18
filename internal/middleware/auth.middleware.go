@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthJwtMiddleware() gin.HandlerFunc {
+func Auth(roles ...string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		response := pkg.NewResponse(ctx)
 		var header string
@@ -22,12 +22,25 @@ func AuthJwtMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Bearer Bearer token
 		token := strings.Replace(header, "Bearer ", "", -1)
 
 		check, err := pkg.VerifyToken(token)
 		if err != nil {
 			response.Unauthorized("Invalid Bearer Token", nil)
+			return
+		}
+
+		roleAllowed := false
+		for _, role := range roles {
+			if check.Role == role {
+				roleAllowed = true
+				break
+			}
+		}
+
+		if !roleAllowed {
+			response.Unauthorized("Forbidden: Insufficient permissions", nil)
+			ctx.Abort()
 			return
 		}
 
@@ -38,34 +51,34 @@ func AuthJwtMiddleware() gin.HandlerFunc {
 	}
 }
 
-func AdminAuthMiddleware() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		response := pkg.NewResponse(ctx)
-		var header string
+// func AdminAuthMiddleware() gin.HandlerFunc {
+// 	return func(ctx *gin.Context) {
+// 		response := pkg.NewResponse(ctx)
+// 		var header string
 
-		if header = ctx.GetHeader("Authorization"); header == "" {
-			response.Unauthorized("Unauthorized", nil)
-			return
-		}
+// 		if header = ctx.GetHeader("Authorization"); header == "" {
+// 			response.Unauthorized("Unauthorized", nil)
+// 			return
+// 		}
 
-		if !strings.Contains(header, "Bearer") {
-			response.Unauthorized("Inavlid Bearer Token", nil)
-			return
-		}
+// 		if !strings.Contains(header, "Bearer") {
+// 			response.Unauthorized("Inavlid Bearer Token", nil)
+// 			return
+// 		}
 
-		// Bearer Bearer token
-		token := strings.Replace(header, "Bearer ", "", -1)
+// 		// Bearer Bearer token
+// 		token := strings.Replace(header, "Bearer ", "", -1)
 
-		check, err := pkg.VerifyToken(token)
-		if err != nil {
-			response.Unauthorized("Inavlid Bearer Token", nil)
-			return
-		}
+// 		check, err := pkg.VerifyToken(token)
+// 		if err != nil {
+// 			response.Unauthorized("Inavlid Bearer Token", nil)
+// 			return
+// 		}
 
-		if check.Role != "admin" {
-			response.Unauthorized("Inavlid Bearer Token", nil)
-			return
-		}
-		ctx.Next()
-	}
-}
+// 		if check.Role != "admin" {
+// 			response.Unauthorized("Inavlid Bearer Token", nil)
+// 			return
+// 		}
+// 		ctx.Next()
+// 	}
+// }

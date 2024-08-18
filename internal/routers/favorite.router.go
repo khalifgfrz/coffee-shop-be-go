@@ -15,9 +15,9 @@ func favorite(g *gin.Engine, d *sqlx.DB) {
 	var repo repository.FavoriteRepositoryInterface = repository.NewFavorite(d)
 	handler := handlers.NewFavorite(repo)
 
-	route.GET("/", middleware.AuthJwtMiddleware(), handler.GetFavorites)
-	route.GET("/:id", middleware.AuthJwtMiddleware(), handler.GetFavoriteDetail)
-	route.POST("/", middleware.AuthJwtMiddleware(), handler.PostFavorite)
-	route.DELETE("/:id", middleware.AuthJwtMiddleware(), handler.FavoriteDelete)
-	route.PATCH("/:id", middleware.AuthJwtMiddleware(), handler.PatchFavorite)
+	route.GET("/", middleware.Auth("user"), handler.GetFavorites)
+	route.GET("/:id", middleware.Auth("user"), handler.GetFavoriteDetail)
+	route.POST("/", middleware.Auth("user"), handler.PostFavorite)
+	route.DELETE("/:id", middleware.Auth("user"), handler.FavoriteDelete)
+	// route.PATCH("/:id", middleware.AuthJwtMiddleware(), handler.PatchFavorite)
 }

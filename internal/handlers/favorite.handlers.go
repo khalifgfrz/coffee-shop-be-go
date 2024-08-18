@@ -90,18 +90,18 @@ func (h *HandlerFavorite) FavoriteDelete(ctx *gin.Context) {
 	response.Success("delete data success", result)
 }
 
-func (h *HandlerFavorite) PatchFavorite(ctx *gin.Context) {
-	response := pkg.NewResponse(ctx)
-	id := ctx.Param("id")
-	body := models.Favorite{}
-	if err := ctx.ShouldBind(&body); err != nil {
-		response.BadRequest("update data failed", err.Error())
-		return
-	}
-	result, err := h.UpdateFavorite(&body,id)
-	if err != nil {
-		response.BadRequest("update data failed", err.Error())
-		return
-	}
-	response.Success("update data success", result)
-}
+// func (h *HandlerFavorite) PatchFavorite(ctx *gin.Context) {
+// 	response := pkg.NewResponse(ctx)
+// 	id := ctx.Param("id")
+// 	body := models.Favorite{}
+// 	if err := ctx.ShouldBind(&body); err != nil {
+// 		response.BadRequest("update data failed", err.Error())
+// 		return
+// 	}
+// 	result, err := h.UpdateFavorite(&body,id)
+// 	if err != nil {
+// 		response.BadRequest("update data failed", err.Error())
+// 		return
+// 	}
+// 	response.Success("update data success", result)
+// }

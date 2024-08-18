@@ -80,7 +80,12 @@ func (h *HandlerUser) GetUsers(ctx *gin.Context) {
 
 func (h *HandlerUser) GetUserDetail(ctx *gin.Context) {
 	response := pkg.NewResponse(ctx)
-	id := ctx.Param("id")
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		response.InternalServerError("User ID not found", nil)
+		return
+	}
+	id := userID.(string)
 	result, err := h.GetDetailUser(id)
 	if err != nil {
 		response.InternalServerError("get data failed", err.Error())
@@ -91,7 +96,12 @@ func (h *HandlerUser) GetUserDetail(ctx *gin.Context) {
 
 func (h *HandlerUser) UserDelete(ctx *gin.Context) {
 	response := pkg.NewResponse(ctx)
-	id := ctx.Param("id")
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		response.InternalServerError("User ID not found", nil)
+		return
+	}
+	id := userID.(string)
 	result, err := h.DeleteUser(id)
 	if err != nil {
 		response.BadRequest("delete data failed", err.Error())
@@ -102,7 +112,12 @@ func (h *HandlerUser) UserDelete(ctx *gin.Context) {
 
 func (h *HandlerUser) PatchUser(ctx *gin.Context) {
 	response := pkg.NewResponse(ctx)
-	id := ctx.Param("id")
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		response.InternalServerError("User ID not found", nil)
+		return
+	}
+	id := userID.(string)
 	body := models.User{}
 	if err := ctx.ShouldBind(&body); err != nil {
 		response.BadRequest("update data failed", err.Error())
@@ -122,7 +137,6 @@ func (h *HandlerUser) PatchUser(ctx *gin.Context) {
 		response.BadRequest("create data failed, upload file failed, wrong file type", nil)
 		return
 	}
-	// upload file
 	randomNumber := rand.Int()
 	fileName := fmt.Sprintf("coffee-user-%d", randomNumber)
 	uploadResult, err := h.UploadFile(ctx, file, fileName)

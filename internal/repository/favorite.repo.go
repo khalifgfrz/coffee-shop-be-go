@@ -12,7 +12,7 @@ type FavoriteRepositoryInterface interface {
 	GetAllFavorite(que *models.FavoriteQuery) (*models.GetFavorites, error)
 	GetDetailFavorite(id string) (*models.GetFavorite, error)
 	DeleteFavorite(id string) (string, error)
-	UpdateFavorite(data *models.Favorite, id string) (string, error)
+	// UpdateFavorite(data *models.Favorite, id string) (string, error)
 }
 
 type RepoFavorite struct {
@@ -88,22 +88,22 @@ func (r *RepoFavorite) DeleteFavorite(id string) (string, error) {
 	return "data deleted", nil
 }
 
-func (r *RepoFavorite) UpdateFavorite(data *models.Favorite, id string) (string, error) {
-	query := `UPDATE public.favorite SET
-		user_id = COALESCE(NULLIF(:user_id, 0), user_id),
-		product_id = COALESCE(NULLIF(:product_id, 0), product_id),
-		updated_at = now()
-	WHERE favorite_id = :id`
+// func (r *RepoFavorite) UpdateFavorite(data *models.Favorite, id string) (string, error) {
+// 	query := `UPDATE public.favorite SET
+// 		user_id = COALESCE(NULLIF(:user_id, 0), user_id),
+// 		product_id = COALESCE(NULLIF(:product_id, 0), product_id),
+// 		updated_at = now()
+// 	WHERE favorite_id = :id`
 
-	params := map[string]interface{}{
-		"user_id": 		data.User_id,
-		"product_id":   data.Product_id,
-		"id":           id,
-	}
+// 	params := map[string]interface{}{
+// 		"user_id": 		data.User_id,
+// 		"product_id":   data.Product_id,
+// 		"id":           id,
+// 	}
 
-	_, err := r.NamedExec(query, params)
-	if err != nil {
-		return "", err
-	}
-	return "data updated", nil
-}
+// 	_, err := r.NamedExec(query, params)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return "data updated", nil
+// }

@@ -25,7 +25,7 @@ func (r *RepoAuth) RegisterUser(body *models.Auth) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return "data created", nil
+	return "Data created", nil
 }
 
 func (r *RepoAuth) LoginUser(email string) (*models.Auth, error) {
