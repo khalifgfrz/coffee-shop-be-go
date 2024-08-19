@@ -36,7 +36,7 @@ func (r *RepoFavorite) CreateFavorite(data *models.Favorite) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		return "data created", nil
+		return "Data created", nil
 }
 
 func (r *RepoFavorite) GetAllFavorite(que *models.FavoriteQuery) (*models.GetFavorites, error) {
@@ -85,7 +85,7 @@ func (r *RepoFavorite) DeleteFavorite(id string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return "data deleted", nil
+	return "Data deleted", nil
 }
 
 // func (r *RepoFavorite) UpdateFavorite(data *models.Favorite, id string) (string, error) {

@@ -6,7 +6,6 @@ import (
 	"khalifgfrz/coffee-shop-be-go/internal/repository"
 	"khalifgfrz/coffee-shop-be-go/pkg"
 	"math/rand"
-	"net/http"
 	"strconv"
 
 	"github.com/asaskevich/govalidator"
@@ -15,10 +14,10 @@ import (
 
 type HandlerUser struct {
 	repository.UserRepositoryInterface
-	pkg.Cloudinary
+	pkg.CloudinaryInterface
 }
 
-func NewUser(r repository.UserRepositoryInterface, cld pkg.Cloudinary) *HandlerUser {
+func NewUser(r repository.UserRepositoryInterface, cld pkg.CloudinaryInterface) *HandlerUser {
 	return &HandlerUser{r, cld}
 }
 
@@ -26,32 +25,33 @@ func (h *HandlerUser) PostUser(ctx *gin.Context) {
 	response := pkg.NewResponse(ctx)
 	user := models.User{}
 	if err := ctx.ShouldBind(&user); err != nil {
-		response.BadRequest("create data failed", err.Error())
+		response.BadRequest("Create data failed", err.Error())
 		return
 	}
 
 	_, err := govalidator.ValidateStruct(&user)
 	if err != nil {
-		response.BadRequest("create data failed", err.Error())
+		response.BadRequest("Create data failed", err.Error())
 		return
 	}
 
 	user.Password, err = pkg.HashPassword(user.Password)
 	if err != nil {
-		response.BadRequest("create data failed", err.Error())
+		response.BadRequest("Create data failed", err.Error())
 		return
 	}
 
 	result, err := h.CreateUser(&user)
 	if err != nil {
-		response.BadRequest("create data failed", err.Error())
+		response.BadRequest("Create data failed", err.Error())
 		return
 	}
-	response.Created("create data success", result)
+	response.Created("Create data success", result)
 }
 
 func (h *HandlerUser) GetUsers(ctx *gin.Context) {
 	pageStr := ctx.DefaultQuery("page","1")
+	response := pkg.NewResponse(ctx)
 
 	var page int
 	var err error
@@ -59,7 +59,7 @@ func (h *HandlerUser) GetUsers(ctx *gin.Context) {
 	if pageStr != "" {
 		page, err = strconv.Atoi(pageStr)
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page number"})
+			response.BadRequest("Invalid page number", err.Error())
 			return
 		}
 	}
@@ -68,14 +68,13 @@ func (h *HandlerUser) GetUsers(ctx *gin.Context) {
 		Page: page,
 	}
 
-	response := pkg.NewResponse(ctx)
 	result, err := h.GetAllUser(&query)
 	if err != nil {
-		response.InternalServerError("get data failed", err.Error())
+		response.InternalServerError("Get data failed", err.Error())
 		return
 	}
 
-	response.Success("get data success", result)
+	response.Success("Get data success", result)
 }
 
 func (h *HandlerUser) GetUserDetail(ctx *gin.Context) {
@@ -88,10 +87,10 @@ func (h *HandlerUser) GetUserDetail(ctx *gin.Context) {
 	id := userID.(string)
 	result, err := h.GetDetailUser(id)
 	if err != nil {
-		response.InternalServerError("get data failed", err.Error())
+		response.InternalServerError("Get data failed", err.Error())
 		return
 	}
-	response.Success("get data success", result)
+	response.Success("Get data success", result)
 }
 
 func (h *HandlerUser) UserDelete(ctx *gin.Context) {
@@ -104,10 +103,10 @@ func (h *HandlerUser) UserDelete(ctx *gin.Context) {
 	id := userID.(string)
 	result, err := h.DeleteUser(id)
 	if err != nil {
-		response.BadRequest("delete data failed", err.Error())
+		response.BadRequest("Delete data failed", err.Error())
 		return
 	}
-	response.Success("delete data success", result)
+	response.Success("Delete data success", result)
 }
 
 func (h *HandlerUser) PatchUser(ctx *gin.Context) {
@@ -120,35 +119,35 @@ func (h *HandlerUser) PatchUser(ctx *gin.Context) {
 	id := userID.(string)
 	body := models.User{}
 	if err := ctx.ShouldBind(&body); err != nil {
-		response.BadRequest("update data failed", err.Error())
+		response.BadRequest("Update data failed", err.Error())
 		return
 	}
 	file, header, err := ctx.Request.FormFile("image")
 	if err != nil {
-		response.BadRequest("create data failed, upload file failed", err.Error())
+		response.BadRequest("Create data failed, upload file failed", err.Error())
 		return
 	}
 	if header.Size > 1*1024*1024 {
-		response.BadRequest("create data failed, upload file failed, file too large", nil)
+		response.BadRequest("Create data failed, upload file failed, file too large", nil)
 		return
 	}
 	mimeType := header.Header.Get("Content-Type")
 	if mimeType != "image/jpg" && mimeType != "image/png" {
-		response.BadRequest("create data failed, upload file failed, wrong file type", nil)
+		response.BadRequest("Create data failed, upload file failed, wrong file type", nil)
 		return
 	}
 	randomNumber := rand.Int()
 	fileName := fmt.Sprintf("coffee-user-%d", randomNumber)
 	uploadResult, err := h.UploadFile(ctx, file, fileName)
 	if err != nil {
-		response.BadRequest("create data failed, upload file failed", err.Error())
+		response.BadRequest("Create data failed, upload file failed", err.Error())
 		return
 	}
 	body.User_image = uploadResult.SecureURL
 	result, err := h.UpdateUser(&body,id)
 	if err != nil {
-		response.BadRequest("update data failed", err.Error())
+		response.BadRequest("Update data failed", err.Error())
 		return
 	}
-	response.Success("update data success", result)
+	response.Success("Update data success", result)
 }

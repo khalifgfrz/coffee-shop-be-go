@@ -29,22 +29,20 @@ func (r *RepoProduct) CreateProduct(data *models.Product) (string, error) {
 		price,
 		category,
 		description,
-		stock,
-		product_image
+		stock
 	) VALUES(
 	 	:product_name,
 		:price,
 		:category,
 		:description,
-		:stock,
-		:product_image
+		:stock
 	)`
 
 	_, err := r.NamedExec(query, data)
 	if err != nil {
 		return "", err
 	}
-	return "data created", nil
+	return "Data created", nil
 }
 
 func (r *RepoProduct) GetAllProduct(que *models.ProductQuery) (*models.GetProducts, error) {
@@ -131,7 +129,7 @@ func (r *RepoProduct) DeleteProduct(id string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return "data deleted", nil
+	return "Data deleted", nil
 }
 
 func (r *RepoProduct) UpdateProduct(data *models.Product, id string) (string, error) {
@@ -160,5 +158,5 @@ func (r *RepoProduct) UpdateProduct(data *models.Product, id string) (string, er
 	if err != nil {
 		return "", err
 	}
-	return "data updated", nil
+	return "Data updated", nil
 }

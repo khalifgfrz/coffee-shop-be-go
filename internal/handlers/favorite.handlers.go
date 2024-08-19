@@ -23,22 +23,22 @@ func (h *HandlerFavorite) PostFavorite(ctx *gin.Context) {
 	response := pkg.NewResponse(ctx)
 	favorite := models.Favorite{}
 	if err := ctx.ShouldBind(&favorite); err != nil {
-		response.BadRequest("create data failed", err.Error())
+		response.BadRequest("Create data failed", err.Error())
 		return
 	}
 
 	_, err := govalidator.ValidateStruct(&favorite)
 	if err != nil {
-		response.BadRequest("create data failed", err.Error())
+		response.BadRequest("Create data failed", err.Error())
 		return
 	}
 
 	result, err := h.CreateFavorite(&favorite)
 	if err != nil {
-		response.BadRequest("create data failed", err.Error())
+		response.BadRequest("Create data failed", err.Error())
 		return
 	}
-	response.Created("create data success", result)
+	response.Created("Create data success", result)
 }
 
 func (h *HandlerFavorite) GetFavorites(ctx *gin.Context) {
@@ -61,11 +61,11 @@ func (h *HandlerFavorite) GetFavorites(ctx *gin.Context) {
 	response := pkg.NewResponse(ctx)
 	result, err := h.GetAllFavorite(&query)
 	if err != nil {
-		response.InternalServerError("get data failed", err.Error())
+		response.InternalServerError("Get data failed", err.Error())
 		return
 	}
 
-	response.Success("get data success", result)
+	response.Success("Get data success", result)
 }
 
 func (h *HandlerFavorite) GetFavoriteDetail(ctx *gin.Context) {
@@ -73,10 +73,10 @@ func (h *HandlerFavorite) GetFavoriteDetail(ctx *gin.Context) {
 	id := ctx.Param("id")
 	result, err := h.GetDetailFavorite(id)
 	if err != nil {
-		response.InternalServerError("get data failed", err.Error())
+		response.InternalServerError("Get data failed", err.Error())
 		return
 	}
-	response.Success("get data success", result)
+	response.Success("Get data success", result)
 }
 
 func (h *HandlerFavorite) FavoriteDelete(ctx *gin.Context) {
@@ -84,10 +84,10 @@ func (h *HandlerFavorite) FavoriteDelete(ctx *gin.Context) {
 	id := ctx.Param("id")
 	result, err := h.DeleteFavorite(id)
 	if err != nil {
-		response.BadRequest("delete data failed", err.Error())
+		response.BadRequest("Delete data failed", err.Error())
 		return
 	}
-	response.Success("delete data success", result)
+	response.Success("Delete data success", result)
 }
 
 // func (h *HandlerFavorite) PatchFavorite(ctx *gin.Context) {

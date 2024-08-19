@@ -9,6 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type CloudinaryInterface interface {
+    UploadFile(ctx *gin.Context, file interface{}, fileName string) (*uploader.UploadResult, error)
+}
+
 type Cloudinary struct {
 	CLD *cloudinary.Cloudinary
 }

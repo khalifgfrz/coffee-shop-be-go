@@ -14,7 +14,7 @@ func user(g *gin.Engine, d *sqlx.DB) {
 	route := g.Group("/user")
 
 	var repo repository.UserRepositoryInterface = repository.NewUser(d)
-	var cld pkg.Cloudinary = *pkg.NewCloudinaryUtil()
+	var cld pkg.CloudinaryInterface = pkg.NewCloudinaryUtil()
 	handler := handlers.NewUser(repo, cld)
 
 	route.GET("/datauser", middleware.Auth("admin"), handler.GetUsers)

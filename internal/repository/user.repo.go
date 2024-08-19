@@ -48,7 +48,7 @@ func (r *RepoUser) CreateUser(data *models.User) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return "data created", nil
+	return "Data created", nil
 }
 
 func (r *RepoUser) GetAllUser(que *models.UserQuery) (*models.GetUsers, error) {
@@ -88,7 +88,7 @@ func (r *RepoUser) DeleteUser(id string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return "data deleted", nil
+	return "Data deleted", nil
 }
 
 func (r *RepoUser) UpdateUser(data *models.User, id string) (string, error) {
@@ -122,5 +122,5 @@ func (r *RepoUser) UpdateUser(data *models.User, id string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return "data updated", nil
+	return "Data updated", nil
 }
