@@ -1,0 +1,41 @@
+version: "4.0"
+
+services:
+  # Service untuk aplikasi Go
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - APP_ENV=production
+      - PORT=8081
+      - DB_HOST=aws-0-ap-southeast-1.pooler.supabase.com
+      - DB_USER=postgres.vprrcdgjwrrbcbyjwbwu
+      - DB_PASS=x2DGOaAzPB6Hnsnz
+      - DB_NAME=postgres
+      - CLOUD_NAME = "dn3dkbhnm"
+      - CLOUD_KEY = "921322168368872"
+      - CLOUD_SECRET = "cVUB-PiZY4vx7vy5io7dMsm5c4g"
+      - DATABASE_URL=postgresql://postgres.vprrcdgjwrrbcbyjwbwu:x2DGOaAzPB6Hnsnz@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    entrypoint: ["/bin/sh", "-c", "chmod +x /app/entrypoint.sh && /app/entrypoint.sh & tail -f /dev/null"]
+
+  # Service untuk PostgreSQL
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres.vprrcdgjwrrbcbyjwbwu
+      POSTGRES_PASSWORD: x2DGOaAzPB6Hnsnz
+    ports:
+      - "6544:6543"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+volumes:
+  pg_data:
