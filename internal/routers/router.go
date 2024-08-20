@@ -12,6 +12,7 @@ func New(db *sqlx.DB) *gin.Engine {
 	product(router, db)
 	favorite(router, db)
 	auth(router, db)
+	order(router, db)
 
 	return router
 }

@@ -106,7 +106,7 @@ func (r *RepoProduct) GetAllProduct(que *models.ProductQuery) (*models.GetProduc
 	
 	data := models.GetProducts{}
 
-	err := r.DB.Select(&data, query, values...)
+	err := r.Select(&data, query, values...)
 	if err != nil {
 		return nil, err
 	}

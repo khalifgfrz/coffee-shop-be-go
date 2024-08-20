@@ -56,7 +56,7 @@ func (r *RepoFavorite) GetAllFavorite(que *models.FavoriteQuery) (*models.GetFav
 	
 	data := models.GetFavorites{}
 
-	err := r.DB.Select(&data, query, values...)
+	err := r.Select(&data, query, values...)
 	if err != nil {
 		return nil, err
 	}

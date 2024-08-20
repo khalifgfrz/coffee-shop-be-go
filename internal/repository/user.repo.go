@@ -64,7 +64,7 @@ func (r *RepoUser) GetAllUser(que *models.UserQuery) (*models.GetUsers, error) {
 	
 	data := models.GetUsers{}
 
-	err := r.DB.Select(&data, query, values...)
+	err := r.Select(&data, query, values...)
 	if err != nil {
 		return nil, err
 	}
