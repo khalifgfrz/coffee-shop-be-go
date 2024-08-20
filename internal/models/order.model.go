@@ -24,7 +24,7 @@ CREATE TABLE public.order_list (
 `
 
 type GetOrder struct {
-	Orderlist_id    string     `db:"orderlist_id" json:"orderlist_id"`
+	Orderlist_id    int     `db:"orderlist_id" json:"orderlist_id"`
 	Orderlist_uuid  string     `db:"orderlist_uuid" json:"orderlist_uuid"`
 	First_name      *string    `db:"first_name" json:"first_name"`
 	Last_name       *string    `db:"last_name" json:"last_name"`
@@ -34,24 +34,26 @@ type GetOrder struct {
 	Subtotal	    *string    `db:"subtotal" json:"subtotal"`
 	Tax             *string    `db:"tax" json:"tax"`
 	Payment_method  *string    `db:"payment_method" json:"payment_method"`
-	Delivery_method *string    `db:"deliver_method" json:"deliver_method"`
+	Delivery_method *string    `db:"delivery_method" json:"delivery_method"`
 	Added_cost	    *string    `db:"added_cost" json:"added_cost" valid:"-"`
 	Status		    *string    `db:"status" json:"status" valid:"-"`
 	Grand_total	    *string    `db:"grand_total" json:"grand_total" valid:"-"`
-	Created_at      *time.Time `db:"created_at" json:"created_at"`
-	Updated_at      *time.Time `db:"updated_at" json:"updated_at"`
+	Products 	    []GetOrderDetail `json:"products"`
 }
 
 type Order struct {
-	User_id    	  int        `db:"user_id" json:"user_id"`
-	Subtotal      int        `db:"subtotal" json:"subtotal"`
-	Tax		      int        `db:"tax" json:"tax"`
-	Payment_id 	  int        `db:"payment_id" json:"payment_id"`
-	Delivery_id	  int        `db:"delivery_id" json:"delivery_id"`
-	Status		  string     `db:"status" json:"status"`
-	Grand_total	  int        `db:"grand_total" json:"grand_total"`
-	Created_at    *time.Time `db:"created_at" json:"created_at"`
-	Updated_at    *time.Time `db:"updated_at" json:"updated_at"`
+	Orderlist_id   	int        `db:"orderlist_id" json:"orderlist_id"`
+	Orderlist_uuid 	string     `db:"orderlist_uuid" json:"orderlist_uuid"`
+	User_id        	int        `db:"user_id" json:"user_id"`
+	Subtotal       	int        `db:"subtotal" json:"subtotal"`
+	Tax            	int        `db:"tax" json:"tax"`
+	Payment_id     	int        `db:"payment_id" json:"payment_id"`
+	Delivery_id    	int        `db:"delivery_id" json:"delivery_id"`
+	Status         	string     `db:"status" json:"status"`
+	Grand_total    	int        `db:"grand_total" json:"grand_total"`
+	Products 	   	[]ProductDetail `json:"products"`
+	Created_at     	*time.Time `db:"created_at" json:"created_at"`
+	Updated_at     	*time.Time `db:"updated_at" json:"updated_at"`
 }
 
 type GetOrders []GetOrder

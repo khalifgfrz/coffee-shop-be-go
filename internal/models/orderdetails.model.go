@@ -20,14 +20,12 @@ type ProductDetail struct {
 	Qty        int `db:"qty" json:"qty"`
 }
 
-type OrderDetail struct {
-	Order_id   int `db:"order_id" json:"order_id"`
-	Size_id    int `db:"size_id" json:"size_id"`
-	Product_id int `db:"product_id" json:"product_id"`
-	Qty        int `db:"qty" json:"qty"`
-}
-
-type OrderDetailsBody struct {
-	Order    Order           `json:"order"`
-	Products []ProductDetail `json:"products"`
+type GetOrderDetail struct {
+	Order_id      *int    `db:"order_id" json:"order_id"`
+	Product_image *string `db:"product_image" json:"product_image" valid:"-"`
+	Product_name  *string `db:"product_name" json:"product_name" form:"product_name" valid:"stringlength(5|100)~Nama Product minimal 5 dan maksimal 100"`
+	Price         *int    `db:"price" json:"price" form:"price" valid:"-"`
+	Size          *string `db:"size" json:"size" form:"size" valid:"-"`
+	Added_cost    *int    `db:"added_cost" json:"added_cost" form:"added_cost" valid:"-"`
+	Qty           *int    `db:"qty" json:"qty"`
 }

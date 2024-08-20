@@ -2,12 +2,14 @@ package repository
 
 import (
 	"khalifgfrz/coffee-shop-be-go/internal/models"
+	"log"
 
 	"github.com/jmoiron/sqlx"
 )
 
 type OrderDetailsRepositoryInterface interface {
 	CreateOrderDetails(order_id int, products []models.ProductDetail) (string, error)
+	GetOrderDetails(order_id int) (*[]models.GetOrderDetail, error)
 }
 
 type RepoOrderDetails struct {
@@ -19,7 +21,7 @@ func NewOrderDetails(db *sqlx.DB) *RepoOrderDetails {
 }
 
 func (r *RepoOrderDetails) CreateOrderDetails(order_id int, products []models.ProductDetail) (string, error) {
-	query := `INSERT INTO order_details (
+	query := `INSERT INTO public.order_details (
 		order_id, 
 		size_id, 
 		product_id, 
@@ -29,7 +31,10 @@ func (r *RepoOrderDetails) CreateOrderDetails(order_id int, products []models.Pr
 		:size_id, 
 		:product_id, 
 		:qty
-	) RETURNING order_id, size_id, product_id, qty;`
+	)`
+
+	log.Println("Executing query:", query)
+
 
 	for _, product := range products {
 		data := map[string]interface{}{
@@ -47,3 +52,17 @@ func (r *RepoOrderDetails) CreateOrderDetails(order_id int, products []models.Pr
 
 	return "Data created", nil
 }
+
+func (r *RepoOrderDetails) GetOrderDetails(order_id int) (*[]models.GetOrderDetail, error) {
+	query := `select od.order_id, p.product_image, p.product_name, p.price, s.size, s.added_cost, od.qty from order_details od
+    join public.product p on od.product_id = p.product_id
+    join public.sizes s on od.size_id = s.size_id
+    where od.order_id=$1`
+	var data []models.GetOrderDetail
+	err := r.Select(&data, query, order_id)
+	if err != nil {
+		return nil, err
+	}
+	return &data, nil
+}
+
