@@ -2,7 +2,6 @@ package main
 
 import (
 	"khalifgfrz/coffee-shop-be-go/database/seed"
-	"khalifgfrz/coffee-shop-be-go/internal/routers"
 	"khalifgfrz/coffee-shop-be-go/pkg"
 	"log"
 
@@ -23,11 +22,11 @@ func main() {
         log.Fatalln("Seeding failed:", err)
     }
 	
-	router := routers.New(db)
-	server := pkg.Server(router)
+	// router := routers.New(db)
+	// server := pkg.Server(router)
 
-	if err := server.ListenAndServe(); err != nil {
-		log.Fatal(err)
-	}
+	// if err := server.ListenAndServe(); err != nil {
+	// 	log.Fatal(err)
+	// }
 
 }
