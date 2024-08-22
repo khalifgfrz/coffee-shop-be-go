@@ -23,7 +23,6 @@ func MockAuthMiddleware(roles ...string) gin.HandlerFunc {
 			return
 		}
 
-		// Simulated token details
 		tokenDetails := struct {
 			Id    string
 			Email string
