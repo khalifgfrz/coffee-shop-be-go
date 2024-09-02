@@ -1,2 +1,5 @@
 .env
 Makefile
+Dockerfile
+docker-compose.yml
+entrypoint.sh
