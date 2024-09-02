@@ -68,6 +68,7 @@ func (h *HandlerOrder) GetOrders(ctx *gin.Context) {
 	query := models.OrderQuery{
 		Page: page,
 	}
+	
 	orders, err := h.GetAllOrder(&query)
 	if err != nil {
 		response.InternalServerError("Get data failed", err.Error())

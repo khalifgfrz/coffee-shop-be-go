@@ -2,7 +2,6 @@ package repository
 
 import (
 	"khalifgfrz/coffee-shop-be-go/internal/models"
-	"log"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -32,9 +31,6 @@ func (r *RepoOrderDetails) CreateOrderDetails(order_id int, products []models.Pr
 		:product_id, 
 		:qty
 	)`
-
-	log.Println("Executing query:", query)
-
 
 	for _, product := range products {
 		data := map[string]interface{}{

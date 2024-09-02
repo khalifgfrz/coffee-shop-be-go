@@ -45,7 +45,7 @@ func (r *RepoOrder) CreateOrder(order *models.Order) (int, error) {
 		order.Payment_id,
 		order.Delivery_id,
 		order.Status,
-		order.Grand_total,
+		order.Grand_total, 
 	}
 
 	var id int
